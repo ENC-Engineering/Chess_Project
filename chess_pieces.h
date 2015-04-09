@@ -21,8 +21,128 @@ public:
 class Rook : public Piece {
 public:
     Rook(bool isBlack) :Piece("rook", isBlack){}
-    void move() {
-        
+    bool move(int x_cor, int y_cor) {
+        bool has_moved=false;
+        stack<int> x_cans;
+        stack<int> y_cans;
+        cout<<"Can move "
+        //up direction
+        int i=y_cor+1;
+        while(i<8){
+            if (board[x_cor][i]!=0){
+                if (board[x_cor][i]->isBlack!=board[x_cor][y_cor]->isBlack){
+                    x_cans.push(x_cor);
+                    y_cans.push(i);
+                    cout<<"("<<x_cor<<","<<i<<") ";
+                }
+                break;
+            }
+            else {
+                x_cans.push(x_cor);
+                y_cans.push(i);
+                cout<<"("<<x_cor<<","<<i<<") ";
+            }
+            i++;
+        }
+        i=y_cor-1;
+        //down direction
+        while(i>=0){
+            if (board[x_cor][i]!=0){
+                if (board[x_cor][i]->isBlack!=board[x_cor][y_cor]->isBlack){
+                    x_cans.push(x_cor);
+                    y_cans.push(i);
+                    cout<<"("<<x_cor<<","<<i<<") ";
+                }
+                break;
+            }
+            else {
+                x_cans.push(x_cor);
+                y_cans.push(i);
+                cout<<"("<<x_cor<<","<<i<<") ";
+            }
+            i--;
+        }
+        //right direction
+        i=x_cor+1;
+        while(i<8){
+            if (board[i][y_cor]!=0){
+                if (board[i][y_cor]->isBlack!=board[x_cor][y_cor]->isBlack){
+                    x_cans.push(i);
+                    y_cans.push(y_cor);
+                    cout<<"("<<i<<","<<y_cor<<") ";
+                }
+                break;
+            }
+            else {
+                x_cans.push(i);
+                y_cans.push(y_cor);
+                cout<<"("<<i<<","<<y_cor<<") ";
+            }
+            i++;
+        }
+        //left direction
+        i=x_cor-1;
+        while(i<8){
+            if (board[i][y_cor]!=0){
+                if (board[i][y_cor]->isBlack!=board[x_cor][y_cor]->isBlack){
+                    x_cans.push(i);
+                    y_cans.push(y_cor);
+                    cout<<"("<<i<<","<<y_cor<<") ";
+                }
+                break;
+            }
+            else {
+                x_cans.push(i);
+                y_cans.push(y_cor);
+                cout<<"("<<i<<","<<y_cor<<") ";
+            }
+            i--;
+        }
+        //Checks the stack of available moves and compares to where you want to move
+        int x_move_to=0;
+        int y_move_to=0;
+        bool x_input = false;
+        bool y_input = false;
+        //This while loop will be replaced with a "listen for click" function
+        while (!y_input || !x_input) {
+            x_move_to=0;
+            y_move_to=0;
+            cout<< "Where would you like to move (x,y)?"
+            int i=0;
+            line = getline();
+            for (int j=0; j<2; j++) {
+                while (!(line.at(i)>48 && line.at(i)<57)) {
+                    i++;
+                }
+                if (line.at(i) && j=0) {
+                    cin>>x_move_to;
+                    x_input = true;
+                }
+                else if (line.at(i) && j=1) {
+                    cin>> y_move_to;
+                    y_input = true;
+                }
+                else {
+                    cout<< "Invalid Input. Please enter in the form (x,y)";
+                    break;
+                }
+            
+            }
+        }
+        while(!x_cans.empty() && !y_cans.empty()){
+            if (x_move_to==x_cans.top() && y_move_to==y_cans.top()){
+                Piece* temp=board[x_cor][y_cor];
+                board[x_move_to][y_move_to]=board[x_cor][y_cor];
+                board[x_cor][y_cor]=0;
+                //Checks to make sure you didnt put yourself in check
+                has_moved=true;
+                //if checked yourself is true then move piece back and hasMoved = false
+                break;
+            }
+            x_cans.pop();
+            y_cans.pop();
+        }
+        return has_moved;
     }
 };
 
