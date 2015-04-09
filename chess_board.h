@@ -1,11 +1,11 @@
-#ifndef COP3503_Project_chess_setup_h
-#define COP3503_Project_chess_setup_h
+#ifndef COP3503_Project_chess_board_h
+#define COP3503_Project_chess_board_h
 
 #include <iostream>
 #include <vector>
 #include <stdlib.h>
 #include "chess_pieces.h"
-#include "chess_setup.h"
+#include "chess_board.h"
 
 using namespace std;
 
