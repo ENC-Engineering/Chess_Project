@@ -470,7 +470,7 @@ public:
 class Queen : public Piece {
 public:
     Queen(bool isBlack) :Piece("queen", isBlack){}
-    void move() {
+    bool move(int x_cor, int y_cor) {
         bool has_moved=false;
         stack<int> x_cans;
         stack<int> y_cans;
