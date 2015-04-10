@@ -68,8 +68,6 @@ private:
                     board[i][j] = new Piece();
             }
         }
-
-
     }
 };
 
