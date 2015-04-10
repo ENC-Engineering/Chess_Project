@@ -1,10 +1,24 @@
-
 #include <iostream>
-#include "chess_setup.h"
+#include "chess_board.h"
 #include "chess_pieces.h"
 
 
 int main() {
-    setup();
+    bool isBlack = false;
+    Piece pieces[6][2] =
+        {{Pawn(!isBlack), Pawn(isBlack)},
+        {King(!isBlack), King(isBlack)},
+        {Queen(!isBlack), Queen(isBlack)},
+        {Bishop(!isBlack), Bishop(isBlack)},
+        {Knight(!isBlack), Knight(isBlack)},
+        {Rook(!isBlack), Rook(isBlack)}};
+    Board Game1(1, pieces);
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            cout<< Game1.board[i][j]->type<<"\t";
+        }
+        cout<< "\n\n";
+    }
+    Game1.deleteBoard();
     return 0;
 }
