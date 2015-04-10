@@ -63,7 +63,7 @@ private:
                         board[i][j] = &pieces[1][1];
                 }
                 else if (i == 6)
-                    board[i][j] = &pieces[1][0];
+                    board[i][j] = &pieces[0][1];
                 else
                     board[i][j] = new Piece();
             }
