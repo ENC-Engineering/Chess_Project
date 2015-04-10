@@ -154,7 +154,7 @@ public:
         bool has_moved=false;
         stack<int> x_cans;
         stack<int> y_cans;
-        cout<<"Can move "
+        cout<<"Can move ";
         //up L's
         int i=y_cor+2;
         if (i<8){
