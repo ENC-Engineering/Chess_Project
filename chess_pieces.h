@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <stack>
 #include "chess_pieces.h"
 
 using namespace std;
@@ -155,7 +156,7 @@ public:
         stack<int> y_cans;
         cout<<"Can move "
         //up L's
-        int i=y_cor+3;
+        int i=y_cor+2;
         if (i<8){
             if (x_cor-1>=0){
                 if (board[x_cor-1][i]!=0){
@@ -187,7 +188,7 @@ public:
             }
         }
         //down L's
-        i=y_cor-3;
+        i=y_cor-2;
         if (i>=0){
             if (x_cor-1>=0){
                 if (board[x_cor-1][i]!=0){
@@ -219,7 +220,7 @@ public:
             }
         }
         //left L's
-        i=x_cor-3;
+        i=x_cor-2;
         if (i>=0){
             if (y_cor-1>=0){
                 if (board[i][y_cor-1]!=0){
@@ -251,7 +252,7 @@ public:
             }
         }
         //right L's
-        i=x_cor+3;
+        i=x_cor+2;
         if (i<8){
             if (y_cor-1>=0){
                 if (board[i][y_cor-1]!=0){
