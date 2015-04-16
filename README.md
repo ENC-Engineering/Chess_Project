@@ -1,2 +1,2 @@
 # Chess_Project
-The chess game
+The chess game: Gets you pumped!
