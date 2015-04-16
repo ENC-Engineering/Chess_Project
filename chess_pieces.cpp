@@ -537,7 +537,6 @@ King::King(bool isBlack) :Piece("king", isBlack){}
                 else {
                     x_cans.push(i);
                     y_cans.push(y_cor);
-                    cout<<"("<<i<<","<<y_cor<<") ";
                 }
             }
         }
