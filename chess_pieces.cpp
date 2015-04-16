@@ -204,23 +204,20 @@ Knight::Knight(bool isBlack) :Piece("knight", isBlack){}
 
 Bishop::Bishop(bool isBlack) :Piece("bishop", isBlack) {}
     void Bishop::generate_moves(Board game, int x_cor, int y_cor, stack<int> &x_cans, stack<int> &y_cans) {
-            cout<<"Can move ";
-            //up-right direction
+        //up-right direction
             int i=y_cor+1;
-        int j=x_cor+1;
+            int j=x_cor+1;
             while(i<8 && j<8){
-                if (game.board[j][i]!=0){
-                    if (game.board[j][i]->isBlack!=game.board[x_cor][y_cor]->isBlack){
+                if (game.board[i][j]!=0){
+                    if (game.board[i][j]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                         x_cans.push(j);
                         y_cans.push(i);
-                        cout<<"("<<j<<","<<i<<") ";
                     }
                     break;
                 }
                 else {
                     x_cans.push(j);
                     y_cans.push(i);
-                    cout<<"("<<j<<","<<i<<") ";
                 }
                 i++;
                 j++;
@@ -229,58 +226,52 @@ Bishop::Bishop(bool isBlack) :Piece("bishop", isBlack) {}
             i=y_cor-1;
             j=x_cor+1;
             while(i>=0 && j<8){
-                if (game.board[j][i]!=0){
-                    if (game.board[j][i]->isBlack!=game.board[x_cor][y_cor]->isBlack){
+                if (game.board[i][j]!=0){
+                    if (game.board[i][j]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                         x_cans.push(j);
                         y_cans.push(i);
-                        cout<<"("<<j<<","<<i<<") ";
                     }
                     break;
                 }
                 else {
                     x_cans.push(j);
                     y_cans.push(i);
-                    cout<<"("<<j<<","<<i<<") ";
                 }
                 i--;
                 j++;
             }
             //up left direction
-            i=x_cor-1;
-            j=y_cor+1;
-            while(i>=0 && j<8){
+            i=y_cor+1;
+            j=x_cor-1;
+            while(i<8 && j>=0){
                 if (game.board[i][j]!=0){
-                    if (game.board[i][j]->isBlack!=game.board[x_cor][y_cor]->isBlack){
-                        x_cans.push(i);
-                        y_cans.push(j);
-                        cout<<"("<<i<<","<<j<<") ";
+                    if (game.board[i][j]->isBlack!=game.board[y_cor][x_cor]->isBlack){
+                        x_cans.push(j);
+                        y_cans.push(i);
                     }
                     break;
                 }
                 else {
-                    x_cans.push(i);
-                    y_cans.push(j);
-                    cout<<"("<<i<<","<<j<<") ";
+                    x_cans.push(j);
+                    y_cans.push(i);
                 }
-                i--;
-                j++;
+                i++;
+                j--;
             }
             //down left direction
-            i=x_cor-1;
-            j=y_cor-1;
+            i=y_cor-1;
+            j=x_cor-1;
             while(i>=0 && j>=0){
                 if (game.board[i][j]!=0){
-                    if (game.board[i][j]->isBlack!=game.board[x_cor][y_cor]->isBlack){
-                        x_cans.push(i);
-                        y_cans.push(j);
-                        cout<<"("<<i<<","<<j<<") ";
+                    if (game.board[i][j]->isBlack!=game.board[y_cor][x_cor]->isBlack){
+                        x_cans.push(j);
+                        y_cans.push(i);
                     }
                     break;
                 }
                 else {
-                    x_cans.push(i);
-                    y_cans.push(j);
-                    cout<<"("<<i<<","<<j<<") ";
+                    x_cans.push(j);
+                    y_cans.push(i);
                 }
                 i--;
                 j--;
@@ -290,23 +281,20 @@ Bishop::Bishop(bool isBlack) :Piece("bishop", isBlack) {}
 
 Queen::Queen(bool isBlack) :Piece("queen", isBlack){}
     void Queen::generate_moves(Board game, int x_cor, int y_cor, stack<int> &x_cans, stack<int> &y_cans) {
-            cout<<"Can move ";
             //up-right direction
             int i=y_cor+1;
-        int j=x_cor+1;
+            int j=x_cor+1;
             while(i<8 && j<8){
-                if (game.board[j][i]!=0){
-                    if (game.board[j][i]->isBlack!=game.board[x_cor][y_cor]->isBlack){
+                if (game.board[i][j]!=0){
+                    if (game.board[i][j]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                         x_cans.push(j);
                         y_cans.push(i);
-                        cout<<"("<<j<<","<<i<<") ";
                     }
                     break;
                 }
                 else {
                     x_cans.push(j);
                     y_cans.push(i);
-                    cout<<"("<<j<<","<<i<<") ";
                 }
                 i++;
                 j++;
@@ -315,58 +303,52 @@ Queen::Queen(bool isBlack) :Piece("queen", isBlack){}
             i=y_cor-1;
             j=x_cor+1;
             while(i>=0 && j<8){
-                if (game.board[j][i]!=0){
-                    if (game.board[j][i]->isBlack!=game.board[x_cor][y_cor]->isBlack){
+                if (game.board[i][j]!=0){
+                    if (game.board[i][j]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                         x_cans.push(j);
                         y_cans.push(i);
-                        cout<<"("<<j<<","<<i<<") ";
                     }
                     break;
                 }
                 else {
                     x_cans.push(j);
                     y_cans.push(i);
-                    cout<<"("<<j<<","<<i<<") ";
                 }
                 i--;
                 j++;
             }
             //up left direction
-            i=x_cor-1;
-            j=y_cor+1;
-            while(i>=0 && j<8){
+            i=y_cor+1;
+            j=x_cor-1;
+            while(i<8 && j>=0){
                 if (game.board[i][j]!=0){
-                    if (game.board[i][j]->isBlack!=game.board[x_cor][y_cor]->isBlack){
-                        x_cans.push(i);
-                        y_cans.push(j);
-                        cout<<"("<<i<<","<<j<<") ";
+                    if (game.board[i][j]->isBlack!=game.board[y_cor][x_cor]->isBlack){
+                        x_cans.push(j);
+                        y_cans.push(i);
                     }
                     break;
                 }
                 else {
-                    x_cans.push(i);
-                    y_cans.push(j);
-                    cout<<"("<<i<<","<<j<<") ";
+                    x_cans.push(j);
+                    y_cans.push(i);
                 }
-                i--;
-                j++;
+                i++;
+                j--;
             }
             //down left direction
-            i=x_cor-1;
-            j=y_cor-1;
+            i=y_cor-1;
+            j=x_cor-1;
             while(i>=0 && j>=0){
                 if (game.board[i][j]!=0){
-                    if (game.board[i][j]->isBlack!=game.board[x_cor][y_cor]->isBlack){
-                        x_cans.push(i);
-                        y_cans.push(j);
-                        cout<<"("<<i<<","<<j<<") ";
+                    if (game.board[i][j]->isBlack!=game.board[y_cor][x_cor]->isBlack){
+                        x_cans.push(j);
+                        y_cans.push(i);
                     }
                     break;
                 }
                 else {
-                    x_cans.push(i);
-                    y_cans.push(j);
-                    cout<<"("<<i<<","<<j<<") ";
+                    x_cans.push(j);
+                    y_cans.push(i);
                 }
                 i--;
                 j--;
@@ -374,72 +356,64 @@ Queen::Queen(bool isBlack) :Piece("queen", isBlack){}
             //up direction
             i=y_cor+1;
             while(i<8){
-                if (game.board[x_cor][i]!=0){
-                    if (game.board[x_cor][i]->isBlack!=game.board[x_cor][y_cor]->isBlack){
+                if (game.board[i][x_cor]!=0){
+                    if (game.board[i][x_cor]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                         x_cans.push(x_cor);
                         y_cans.push(i);
-                        cout<<"("<<x_cor<<","<<i<<") ";
                     }
                     break;
                 }
                 else {
                     x_cans.push(x_cor);
                     y_cans.push(i);
-                    cout<<"("<<x_cor<<","<<i<<") ";
                 }
                 i++;
             }
             //down direction
             i=y_cor-1;
             while(i>=0){
-                if (game.board[x_cor][i]!=0){
-                    if (game.board[x_cor][i]->isBlack!=game.board[x_cor][y_cor]->isBlack){
+                if (game.board[i][x_cor]!=0){
+                    if (game.board[i][x_cor]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                         x_cans.push(x_cor);
                         y_cans.push(i);
-                        cout<<"("<<x_cor<<","<<i<<") ";
                     }
                     break;
                 }
                 else {
                     x_cans.push(x_cor);
                     y_cans.push(i);
-                    cout<<"("<<x_cor<<","<<i<<") ";
                 }
                 i--;
             }
             //right direction
             i=x_cor+1;
             while(i<8){
-                if (game.board[i][y_cor]!=0){
-                    if (game.board[i][y_cor]->isBlack!=game.board[x_cor][y_cor]->isBlack){
+                if (game.board[y_cor][i]!=0){
+                    if (game.board[y_cor][i]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                         x_cans.push(i);
                         y_cans.push(y_cor);
-                        cout<<"("<<i<<","<<y_cor<<") ";
                     }
                     break;
                 }
                 else {
                     x_cans.push(i);
                     y_cans.push(y_cor);
-                    cout<<"("<<i<<","<<y_cor<<") ";
                 }
                 i++;
             }
             //left direction
             i=x_cor-1;
             while(i>=0){
-                if (game.board[i][y_cor]!=0){
-                    if (game.board[i][y_cor]->isBlack!=game.board[x_cor][y_cor]->isBlack){
+                if (game.board[y_cor][i]!=0){
+                    if (game.board[y_cor][i]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                         x_cans.push(i);
                         y_cans.push(y_cor);
-                        cout<<"("<<i<<","<<y_cor<<") ";
                     }
                     break;
                 }
                 else {
                     x_cans.push(i);
                     y_cans.push(y_cor);
-                    cout<<"("<<i<<","<<y_cor<<") ";
                 }
                 i--;
             }
@@ -448,99 +422,87 @@ Queen::Queen(bool isBlack) :Piece("queen", isBlack){}
 
 King::King(bool isBlack) :Piece("king", isBlack){}
     void King::generate_moves(Board game, int x_cor, int y_cor, stack<int> &x_cans, stack<int> &y_cans) {
-            cout<<"Can move ";
             //up-right direction
             int i=y_cor+1;
             int j=x_cor+1;
             if(i<8 && j<8){
-                if (game.board[j][i]!=0){
-                    if (game.board[j][i]->isBlack!=game.board[x_cor][y_cor]->isBlack){
+                if (game.board[i][j]!=0){
+                    if (game.board[i][j]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                         x_cans.push(j);
                         y_cans.push(i);
-                        cout<<"("<<j<<","<<i<<") ";
                     }
                 }
                 else {
                     x_cans.push(j);
                     y_cans.push(i);
-                    cout<<"("<<j<<","<<i<<") ";
                 }
             }
             //down right direction
             i=y_cor-1;
             j=x_cor+1;
             if (i>=0 && j<8){
-                if (game.board[j][i]!=0){
-                    if (game.board[j][i]->isBlack!=game.board[x_cor][y_cor]->isBlack){
+                if (game.board[i][j]!=0){
+                    if (game.board[i][j]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                         x_cans.push(j);
                         y_cans.push(i);
-                        cout<<"("<<j<<","<<i<<") ";
+                    }
+                }
+                else {
+                    x_cans.push(i);
+                    y_cans.push(j);
+                }
+            }
+            //up left direction
+            i=y_cor+1;
+            j=x_cor-1;
+            if (i<8 && j>=0){
+                if (game.board[i][j]!=0){
+                    if (game.board[i][j]->isBlack!=game.board[y_cor][x_cor]->isBlack){
+                        x_cans.push(j);
+                        y_cans.push(i);
                     }
                 }
                 else {
                     x_cans.push(j);
                     y_cans.push(i);
-                    cout<<"("<<j<<","<<i<<") ";
-                }
-            }
-            //up left direction
-            i=x_cor-1;
-            j=y_cor+1;
-            if (i>=0 && j<8){
-                if (game.board[i][j]!=0){
-                    if (game.board[i][j]->isBlack!=game.board[x_cor][y_cor]->isBlack){
-                        x_cans.push(i);
-                        y_cans.push(j);
-                        cout<<"("<<i<<","<<j<<") ";
-                    }
-                }
-                else {
-                    x_cans.push(i);
-                    y_cans.push(j);
-                    cout<<"("<<i<<","<<j<<") ";
                 }
             }
             //down left direction
-            i=x_cor-1;
-            j=y_cor-1;
+            i=y_cor-1;
+            j=x_cor-1;
             if (i>=0 && j>=0){
                 if (game.board[i][j]!=0){
-                    if (game.board[i][j]->isBlack!=game.board[x_cor][y_cor]->isBlack){
-                        x_cans.push(i);
-                        y_cans.push(j);
-                        cout<<"("<<i<<","<<j<<") ";
+                    if (game.board[i][j]->isBlack!=game.board[y_cor][x_cor]->isBlack){
+                        x_cans.push(j);
+                        y_cans.push(i);
                     }
                 }
                 else {
-                    x_cans.push(i);
-                    y_cans.push(j);
-                    cout<<"("<<i<<","<<j<<") ";
+                    x_cans.push(j);
+                    y_cans.push(i);
                 }
             }
             //up direction
             i=y_cor+1;
             if (i<8){
-                if (game.board[x_cor][i]!=0){
-                    if (game.board[x_cor][i]->isBlack!=game.board[x_cor][y_cor]->isBlack){
+                if (game.board[i][x_cor]!=0){
+                    if (game.board[i][x_cor]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                         x_cans.push(x_cor);
                         y_cans.push(i);
-                        cout<<"("<<x_cor<<","<<i<<") ";
                     }
                 }
                 else {
                     x_cans.push(x_cor);
                     y_cans.push(i);
-                    cout<<"("<<x_cor<<","<<i<<") ";
                 }
             }
             //down direction
             i=y_cor-1;
             if (i>=0){
-                if (game.board[x_cor][i]!=0){
-                    if (game.board[x_cor][i]->isBlack!=game.board[x_cor][y_cor]->isBlack){
+                if (game.board[i][x_cor]!=0){
+                    if (game.board[i][x_cor]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                         x_cans.push(x_cor);
                         y_cans.push(i);
-                        cout<<"("<<x_cor<<","<<i<<") ";
                     }
                 }
                 else {
@@ -552,27 +514,24 @@ King::King(bool isBlack) :Piece("king", isBlack){}
             //right direction
             i=x_cor+1;
             if (i<8){
-                if (game.board[i][y_cor]!=0){
-                    if (game.board[i][y_cor]->isBlack!=game.board[x_cor][y_cor]->isBlack){
+                if (game.board[y_cor][i]!=0){
+                    if (game.board[y_cor][i]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                         x_cans.push(i);
                         y_cans.push(y_cor);
-                        cout<<"("<<i<<","<<y_cor<<") ";
                     }
                 }
                 else {
                     x_cans.push(i);
                     y_cans.push(y_cor);
-                    cout<<"("<<i<<","<<y_cor<<") ";
                 }
             }
             //left direction
             i=x_cor-1;
             if (i>=0){
-                if (game.board[i][y_cor]!=0){
-                    if (game.board[i][y_cor]->isBlack!=game.board[x_cor][y_cor]->isBlack){
+                if (game.board[y_cor][i]!=0){
+                    if (game.board[y_cor][i]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                         x_cans.push(i);
                         y_cans.push(y_cor);
-                        cout<<"("<<i<<","<<y_cor<<") ";
                     }
                 }
                 else {
@@ -586,8 +545,8 @@ King::King(bool isBlack) :Piece("king", isBlack){}
 
 Pawn::Pawn(bool isBlack) :Piece("pawn", isBlack){}
     void Pawn::generate_moves(Board game, int x_cor, int y_cor, stack<int> &x_cans, stack<int> &y_cans) {
-            cout<<"Can move ";
             //Black moves down
+            //board is upside down, so down is moving up the array
             if (game.board[y_cor][x_cor]->isBlack){
                 int i=y_cor+1;
                 if (i<8){
@@ -623,6 +582,7 @@ Pawn::Pawn(bool isBlack) :Piece("pawn", isBlack){}
                 }
             }
             //White moves up
+            //board is upside down, so moving up is moving down the array
             else{
                 int i=y_cor-1;
                 if (i>=0){
@@ -648,7 +608,6 @@ Pawn::Pawn(bool isBlack) :Piece("pawn", isBlack){}
                     }
                 }
                 //Can move up two at start
-                //Fix this
                 if (y_cor==6){
                     if (game.board[i][x_cor]==0){
                         if (game.board[i-1][x_cor]==0){
