@@ -1,40 +1,41 @@
 #include <iostream>
-#include <string>
 #include "chess_board.h"
 #include "chess_pieces.h"
+
+using namespace std;
 
 //Check function
 //Going to change move to two separate functions, one that generates a move set, the other to move to a place in the subset
 //Also will make a function specifically for checkmate called checkmoves
 
-bool check(Board &Game1, bool player_isBlack){
+bool check(Board game, bool player_isBlack){
     //Find the person's king of the same color
     bool in_check=false;
     int king_x=0;
     int king_y=0;
-    for(int i=0; i<8; i++){
-        for(int j = 0; j < 8; j++){
-            if (Game1.board[i][j]!=0){
-                string piece_type=Game1.board[i][j]->type
+    for(int y_pos=0; y_pos<8; y_pos++){
+        for(int x_pos = 0; x_pos < 8; x_pos++){
+            if (game.board[y_pos][x_pos]!=0){
+                string piece_type=game.board[y_pos][x_pos]->type;
                 if (piece_type.compare("king")==0){
-                    if (Game1.board[i][j]->isBlack==player_isBlack){
-                        king_x=j;
-                        king_y=i;
+                    if (game.board[y_pos][x_pos]->isBlack==player_isBlack){
+                        king_x=x_pos;
+                        king_y=y_pos;
                     }
                 }
             }
         }
     }
     //Now will check if any moves of the opposite colors pieces will reach the king's coordinates
-    for(int i=0; i<8; i++){
-        for(int j = 0; j < 8; j++){
-            if (Game1.board[i][j]!=0){
-                if (Game1.board[i][j]->isBlack != player_isBlack){
+    for(int y_pos=0; y_pos<8; y_pos++){
+        for(int x_pos = 0; x_pos < 8; x_pos++){
+            if (game.board[y_pos][x_pos]!=0){
+                if (game.board[y_pos][x_pos]->isBlack != player_isBlack){
                     //Means it found a piece of opposite color of the king in question
                     stack<int> can_xs;
                     stack<int> can_ys;
-                    //Generate move is a void method that fills the two stacks with all moves of that piece in Game1 at (j,i)
-                    Game1.board[i][j]->generate_moves(j, i, Game1, can_xs, can_ys);
+                    //Generate move is a void method that fills the two stacks with all moves of that piece in game at (j,i)
+                    game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
                     while (!can_xs.empty() && !can_ys.empty()){
                         if (can_xs.top()==king_x && can_ys.top()==king_y){
                             in_check=true;
@@ -60,18 +61,105 @@ bool check(Board &Game1, bool player_isBlack){
 //Going to create a checkmoves function which is like move but automatically moves to all possible places and checks for check
 //Outline of checkmate when checkmoves and check is running completely
 
-bool checkmate(Board &Game1, bool player_isBlack){
+bool move(Board game, int x_cor, int y_cor) {
+    //generates all moves for the piece you are moving
+    bool player_color_isBlack = game.board[y_cor][x_cor]->isBlack;
+    bool has_moved=false;
+    
+    stack<int> x_cans1;
+    stack<int> y_cans1;
+    stack<int> x_cans2;
+    stack<int> y_cans2;
+    
+    game.board[y_cor][x_cor]->generate_moves(game, x_cor, y_cor, x_cans1, y_cans1);
+    if (x_cans1.empty() || y_cans1.empty()) {
+        cout<< "Cannot move";
+    }
+    else {
+        while (!x_cans1.empty() && !y_cans1.empty()) {
+            cout << "(" << x_cans1.top()+1 << ", " << 8 - y_cans1.top() << ") ; ";
+            x_cans2.push(x_cans1.top());
+            x_cans1.pop();
+            y_cans2.push(y_cans1.top());
+            y_cans1.pop();
+        }
+    }
+    cout<< "\n";
+    //inputs where you would like to move
+    int x_move=0;
+    int y_move=0;
+    cout<<"Please enter the (x, y) you would like to move to";
+    cin>>x_move;
+    cin>>y_move;
+    x_move = x_move - 1;
+    y_move = 8 - y_move;
+    //checks to see if the move is on the generated move list
+    while (!x_cans2.empty() && !y_cans2.empty()){
+        if (x_move==x_cans2.top() && y_move==y_cans2.top()){
+            Piece* temp1=game.board[y_cor][x_cor];
+            Piece* temp2=game.board[y_move][x_move];
+            game.board[y_move][x_move]=game.board[y_cor][x_cor];
+            game.board[y_cor][x_cor]=0;
+            //Makes sure the move doesn't put you in check or else it moves you back
+           // bool put_yourself_incheck = check(game, player_color_isBlack);
+            //if (put_yourself_incheck){
+            //    cout<<"You can't move there, it puts you in check";
+            //    game.board[y_move][x_move]=temp2;
+            //    game.board[y_cor][x_cor]=temp1;
+            //    break;
+           // }
+           // else {
+                has_moved=true;
+                break;
+           // }
+        }
+        x_cans2.pop();
+        y_cans2.pop();
+    }
+    return has_moved;
+}
+
+//checkmoves without generate moves
+bool checkmoves(Board game, int x_pos, int y_pos, bool player_isBlack){
+    //Starts by generating all the moves the piece can do
+    bool can_block=false;
+    stack<int> can_xs;
+    stack<int> can_ys;
+    game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
+    //Then temporarily moves the piece to all the possible places and see if it can stop the check
+    while (!can_xs.empty() && !can_ys.empty()){
+        //temporarily moves the piece to see if it would stop check
+        int x_move=can_xs.top();
+        int y_move=can_ys.top();
+        Piece* temp1=game.board[y_pos][x_pos];
+        Piece* temp2=game.board[y_move][x_move];
+        game.board[y_move][x_move]=game.board[y_pos][x_pos];
+        game.board[y_pos][x_pos]=0;
+        bool in_check = check(game, player_isBlack);
+        game.board[y_move][x_move]=temp2;
+        game.board[y_pos][x_pos]=temp1;
+        if (!in_check){
+            can_block=false;
+            break;
+        }
+        can_xs.pop();
+        can_ys.pop();
+    }
+    return can_block;
+}
+
+bool checkmate(Board game, bool player_isBlack){
     //assumes checkmate until proven wrong
     bool in_checkmate=true;
-    for(int i=0; i<8; i++){
-        for(int j = 0; j < 8; j++){
-            if (Game1.board[i][j]!=0){
-                if (Game1.board[i][j]->isBlack==player_isBlack){
+    for(int y_pos=0; y_pos<8; y_pos++){
+        for(int x_pos = 0; x_pos < 8; x_pos++){
+            if (game.board[y_pos][x_pos]!=0){
+                if (game.board[y_pos][x_pos]->isBlack==player_isBlack){
                     //Checks to see if this piece can block the check, assumes it can't
                     bool can_block=false;
-                    can_block=Game1.board[i][j]->checkmoves(j, i, Game1, player_isBlack);
+                    can_block = checkmoves(game, x_pos, y_pos, player_isBlack);
                     if (can_block){
-                        in_checkmate=false;    
+                        in_checkmate=false;
                     }
                 }
             }
@@ -83,97 +171,71 @@ bool checkmate(Board &Game1, bool player_isBlack){
             break;
         }
     }
-    return in_checkmate
+    return in_checkmate;
 }
 
-//checkmoves without generate moves
-bool checkmoves(int x_pos, int y_pos, Board &Game1, bool player_isBlack){
-    //Starts by generating all the moves the piece can do
-    bool can_block=false;
-    stack<int> can_xs;
-    stack<int> can_ys;
-    Game1.board[i][j]->generate_moves(j, i, Game1, can_xs, can_ys);
-    //Then temporarily moves the piece to all the possible places and see if it can stop the check
-    while (!can_xs.empty() && !can_ys.empty()){
-        //temporarily moves the piece to see if it would stop check
-        int x_move=can_xs.top();
-        int y_move=can_ys.top();
-        Piece* temp1=Game1.board[i][j];
-        Piece* temp2=Game1.board[y_move][x_move];
-        Game1.board[y_move][x_move]=Game1.board[i][j];
-        Game1.board[i][j]=0;
-        bool in_check=check(Game1 , player_isBlack)
-        Game1.board[y_move][x_move]=temp2;
-        Game1.board[i][j]=temp1;
-        if (!in_check){
-            can_block=false;
-            break;
-        }
-        can_xs.pop();
-        can_ys.pop();
-    }
-    return can_block
-}
-
-//Better move function
-bool move(int j, int i, Board &Game1){
-    //generates all moves for the piece you are moving
-    bool your_color=Game1.board[i][j]->isBlack;
-    bool has_moved=false;
-    stack<int> can_xs;
-    stack<int> can_ys;
-    Game1.board[i][j]->generate_moves(j, i, Game1, can_xs, can_ys);
-    //inputs where you would like to move
-    int x_move=0;
-    int y_move=0;
-    cout<<"Please enter the (x y) you would like to move to";
-    cin>>x_move;
-    cin>>y_move;
-    //checks to see if the move is on the generated move list
-    while (!can_xs.empty() && !can_ys.empty()){
-        if (x_move==can_xs.top() && if y_move==can_ys.top()){
-            Piece* temp1=Game1.board[i][j];
-            Piece* temp2=Game1.board[y_move][x_move];
-            Game1.board[y_move][x_move]=Game1.board[i][j];
-            Game1.board[i][j]=0;
-            //Makes sure the move doesn't put you in check or else it moves you back
-            bool put_yourself_incheck=check(Game1, your_color);
-            if (put_yourself_incheck){
-                cout<<"You can't move there, it puts you in check";
-                Game1.board[y_move][x_move]=temp2;
-                Game1.board[i][j]=temp1;
-                break;
-            }
-            else {
-                has_moved=true;
-                break;
-            }
-        }
-        can_xs.pop();
-        can_ys.pop();
-    }
-    return has_moved;
-}
-
-//Runs the game
 int main() {
     bool isBlack = false;
-    Piece pieces[6][2] =
-        {{Pawn(!isBlack), Pawn(isBlack)},
-        {King(!isBlack), King(isBlack)},
-        {Queen(!isBlack), Queen(isBlack)},
-        {Bishop(!isBlack), Bishop(isBlack)},
-        {Knight(!isBlack), Knight(isBlack)},
-        {Rook(!isBlack), Rook(isBlack)}};
+    Piece* pieces[6][2] =
+        {
+        {new Pawn(!isBlack),    new Pawn(isBlack)},
+        {new King(!isBlack),    new King(isBlack)},
+        {new Queen(!isBlack),   new Queen(isBlack)},
+        {new Bishop(!isBlack),  new Bishop(isBlack)},
+        {new Knight(!isBlack),  new Knight(isBlack)},
+        {new Rook(!isBlack),    new Rook(isBlack)}
+        };
     Board Game1(1, pieces);
-    for(int i = 0; i < 8; i++){
-        for(int j = 0; j < 8; j++){
-            cout<< Game1.board[i][j]->type<<"\t";
+    Game1.printBoard();
+    bool quit = false;
+    bool blacksTurn = false;
+    while (!quit) {
+        bool hasMoved = false;
+        if (blacksTurn) {
+            cout << "Black's turn, press enter to continue.\n";
         }
-        cout<< "\n\n";
+        else {
+            cout << "White's turn, press enter to continue.\n";
+        }
+        cin.ignore();
+        cout<< "Choose an option:\n\t1 = Move\n\t2 = Quit\n";
+        string choice;
+        cin >> choice;
+        if (choice.compare("2")==0) {
+            break;
+        }
+        while (!hasMoved) {
+            int x_cor;
+            int y_cor;
+            cout<< "Where is the piece that you want to move (x,y)?\n";
+            cin>> x_cor;
+            cin>> y_cor;
+            if (x_cor<1 || x_cor>8 || y_cor<1 || y_cor>8) {
+                cout<< "Error: Invalid Space, try agian.\n";
+                continue;
+            }
+            x_cor = x_cor - 1;
+            y_cor = 8 - y_cor;
+            if (Game1.board[y_cor][x_cor]!=0){
+                if (Game1.board[y_cor][x_cor]->isBlack==blacksTurn) {
+                    cout<< "\n" << Game1.board[y_cor][x_cor]->type << Game1.board[y_cor][x_cor]->isBlack << "\n";
+                    hasMoved = move(Game1, x_cor, y_cor);
+                    if (hasMoved == true) {
+                        cout<< "Yay!\n";
+                    }
+                    else {
+                        cout<< "Error\n";
+                    }
+                }
+                else {
+                    cout<< "Not your piece, try again!\n";
+                    continue;
+                }
+            }
+        }
+        blacksTurn = !blacksTurn;
+        Game1.printBoard();
     }
-    //New variable to see whose turn it is
-    bool player_isBlack_turn=true;
     Game1.deleteBoard();
     return 0;
 }
