@@ -1,0 +1,263 @@
+//Basic chess AI move
+//AI plays as the black pieces
+void AI_move(Board game, bool in_check){
+stack<int> xs;
+stack<int> ys;
+stack<string> move_get_taken;
+stack<string> move;
+stack<string> move_can_take_get_taken;
+stack<string> move_can_take;
+stack<string> check_get_taken;
+stack<string> put_them_in_check;	
+if (in_check==false){
+	//sorts and generates all moves for all pieces
+	bool has_moved=false;
+	for(int y_pos=0; y_pos<8; y_pos++){
+		for(int x_pos = 0; x_pos < 8; x_pos++){
+			if (game.board[y_pos][x_pos]!=0){
+				if (game.board[y_pos][x_pos]->isBlack == player_isBlack){
+					game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, xs, ys);
+					sort_moves(x_pos, y_pos, game ,xs , ys, move_get_taken, move, move_can_take_get_taken, move_can_take, check_get_taken, put_them_in_check);
+				}
+			}
+		}
+	}
+	//picks the first move in the most optimal one as long as it doesn't put you in check and keeps going down
+	while(!put_them_in_check.empty() && !has_moved){
+		string info=put_them_in_check.top();
+		x_pos=info.at(0)-'0';
+		y_pos=info.at(1)-'0';
+		x=info.at(2)-'0';
+		y=info.at(3)-'0';
+		Piece* temp1=game.board[y][x];
+		Piece* temp2=game.board[y_pos][x_pos];
+		game.board[y][x]=game.board[y_pos][x_pos];
+		game.board[y_pos][x_pos]=0;
+		if (check(game, true)==true);
+			game.board[y][x]=temp1;
+			game.board[y_pos][x_pos]=temp2;
+		}
+		else {
+			has_moved=true;
+		}
+		put_them_in_check.pop();
+	}
+	while(!check_get_taken.empty() && !has_moved){
+		string info=check_get_taken.top();
+		x_pos=info.at(0)-'0';
+		y_pos=info.at(1)-'0';
+		x=info.at(2)-'0';
+		y=info.at(3)-'0';
+		Piece* temp1=game.board[y][x];
+		Piece* temp2=game.board[y_pos][x_pos];
+		game.board[y][x]=game.board[y_pos][x_pos];
+		game.board[y_pos][x_pos]=0;
+		if (check(game, true)==true);
+			game.board[y][x]=temp1;
+			game.board[y_pos][x_pos]=temp2;
+		}
+		else {
+			has_moved=true;
+		}
+		check_get_taken.pop();
+	}
+	while(!move_can_take.empty() && !has_moved){
+		string info=move_can_take.top();
+		x_pos=info.at(0)-'0';
+		y_pos=info.at(1)-'0';
+		x=info.at(2)-'0';
+		y=info.at(3)-'0';
+		Piece* temp1=game.board[y][x];
+		Piece* temp2=game.board[y_pos][x_pos];
+		game.board[y][x]=game.board[y_pos][x_pos];
+		game.board[y_pos][x_pos]=0;
+		if (check(game, true)==true);
+			game.board[y][x]=temp1;
+			game.board[y_pos][x_pos]=temp2;
+		}
+		else {
+			has_moved=true;
+		}
+		move_can_take.pop();
+	}
+	while(!move_can_take_get_taken.empty() && !has_moved){
+		string info=move_can_take_get_taken.top();
+		x_pos=info.at(0)-'0';
+		y_pos=info.at(1)-'0';
+		x=info.at(2)-'0';
+		y=info.at(3)-'0';
+		Piece* temp1=game.board[y][x];
+		Piece* temp2=game.board[y_pos][x_pos];
+		game.board[y][x]=game.board[y_pos][x_pos];
+		game.board[y_pos][x_pos]=0;
+		if (check(game, true)==true);
+			game.board[y][x]=temp1;
+			game.board[y_pos][x_pos]=temp2;
+		}
+		else {
+			has_moved=true;
+		}
+		move_can_take_get_taken.pop();
+	}
+	while(!move.empty() && !has_moved){
+		string info=move.top();
+		x_pos=info.at(0)-'0';
+		y_pos=info.at(1)-'0';
+		x=info.at(2)-'0';
+		y=info.at(3)-'0';
+		Piece* temp1=game.board[y][x];
+		Piece* temp2=game.board[y_pos][x_pos];
+		game.board[y][x]=game.board[y_pos][x_pos];
+		game.board[y_pos][x_pos]=0;
+		if (check(game, true)==true);
+			game.board[y][x]=temp1;
+			game.board[y_pos][x_pos]=temp2;
+		}
+		else {
+			has_moved=true;
+		}
+		move.pop();
+	}
+	while(!move_get_taken.empty() && !has_moved){
+		string info=move_get_taken.top();
+		x_pos=info.at(0)-'0';
+		y_pos=info.at(1)-'0';
+		x=info.at(2)-'0';
+		y=info.at(3)-'0';
+		Piece* temp1=game.board[y][x];
+		Piece* temp2=game.board[y_pos][x_pos];
+		game.board[y][x]=game.board[y_pos][x_pos];
+		game.board[y_pos][x_pos]=0;
+		if (check(game, true)==true);
+			game.board[y][x]=temp1;
+			game.board[y_pos][x_pos]=temp2;
+		}
+		else {
+			has_moved=true;
+		}
+		move_get_taken.pop();
+	}
+}
+//makes the first move to get you out of check through a restyled version of checkmate
+if (in_check){
+	bool has_moved=false;
+    for(int y_pos=0; y_pos<8; y_pos++){
+        for(int x_pos = 0; x_pos < 8; x_pos++){
+            if (game.board[y_pos][x_pos]!=0){
+                if (game.board[y_pos][x_pos]->isBlack==true){
+                    bool blocked=try_move(game, x_pos, y_pos, true);
+                    if (blocked){
+                        has_moved=true;
+                    }
+                }
+            }
+            if (has_moved==true){
+                break;
+            }
+        }
+        if (has_moved==true){
+            break;
+        }
+    }
+}
+}
+
+//restyled function called try_move which moves the AI to a place in order to stop check
+bool try_move(Board game, int x_pos, int y_pos, bool player_isBlack){
+    bool blocked=false;
+    stack<int> can_xs;
+    stack<int> can_ys;
+    game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
+    while (!can_xs.empty() && !can_ys.empty()){
+        int x_move=can_xs.top();
+        int y_move=can_ys.top();
+        Piece* temp1=game.board[y_pos][x_pos];
+        Piece* temp2=game.board[y_move][x_move];
+        game.board[y_move][x_move]=game.board[y_pos][x_pos];
+        game.board[y_pos][x_pos]=0;
+        bool in_check = check(game, player_isBlack);
+        if (in_check==false){
+            blocked==true;
+            break;
+        }
+		else {
+			game.board[y_move][x_move]=temp2;
+			game.board[y_pos][x_pos]=temp1;
+		}
+        can_xs.pop();
+        can_ys.pop();
+    }
+    return blocked;
+}
+
+//This is the sorting algorithm which determines the tier level of each move for each piece
+void sort_move(int x_pos, int y_pos, Board game, stack<int> &xs, stack<int> &ys, stack<string> &move_get_taken, stack<string> &move, 
+stack<string> &move_can_take_get_taken, stack<string> &move_can_take, stack<string> &check_get_taken, stack<string> &put_them_in_check){
+	while (!xs.empty() && !ys.empty()){
+		bool can_take=false;
+		bool gets_taken=false;
+		bool can_take_king=false;
+		x=xs.top();
+		y=ys.top();
+		//runs to see if it moves to a place where it can get taken
+		for(int y_pos2=0; y_pos2<8; y_pos2++){
+			for(int x_pos2 = 0; x_pos2 < 8; x_pos2++){
+				if (game.board[y_pos2][x_pos2]!=0){
+					if (game.board[y_pos2][x_pos2]->isBlack != true){
+						stack<int> can_xs;
+						stack<int> can_ys;
+						game.board[y_pos2][x_pos2]->generate_moves(game, x_pos2, y_pos2, can_xs, can_ys);
+						while (!can_xs.empty() && !can_ys.empty()){
+							if ((can_xs.top()==x && can_ys.top()==y)){
+								gets_taken=true;
+								break;
+							}
+							can_xs.pop();
+							can_ys.pop();
+						}
+					}
+				}
+				if (gets_taken=true){
+					break;
+				}
+			}
+			if (gets_taken=true){
+				break;
+			}
+		}
+		//runs to see if it can take anything
+		if (game.board[y][x]!=0){
+			can_take=true;
+		}
+		//See if it puts the king in check by moving it to that position
+		Piece* temp1=game.board[y][x];
+		Piece* temp2=game.board[y_pos][x_pos];
+		game.board[y][x]=game.board[y_pos][x_pos];
+		game.board[y_pos][x_pos]=0;
+		can_take_king=check(game, false);
+		game.board[y][x]=temp1;
+		game.board[y_pos][x_pos]=temp2;
+		//Builds the string for position in (x_pos,y_pos,x,y) format
+		string formatted=x_pos<<y_pos<<x<<y;
+		if (!can_take && !gets_taken && !can_take_king){
+			move.push(formatted);
+		}
+		if (!can_take && gets_taken && !can_take_king){
+			move_get_taken.push(formatted);
+		}
+		if (can_take && gets_taken && !can_take_king){
+			move_can_take_get_taken.push(formatted);
+		}
+		if (can_take && !gets_taken && !can_take_king){
+			move_can_take.push(formatted);
+		}
+		if (gets_taken && can_take_king){
+			check_get_taken.push(formatted);
+		}
+		if (!gets_taken && can_take_king){
+			put_them_in_check.push(formatted);
+		}
+		xs.pop();
+		ys.pop();
+	}
+}
