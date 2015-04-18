@@ -327,6 +327,7 @@ bool castle_check_close(Board game, bool player_isBlack){
 }
 
 
+
 //The actual game
 int main() {
     bool isBlack = false;
@@ -351,7 +352,8 @@ int main() {
 	bool kb_not=true;
 	bool kw_not=true;
 	bool en_passant=false;
-	int p_cor=0;
+	int px_cor=0;
+	int py_cor=0;
 	//runs the game until you choose to quit or checkmate occurs
     while (!quit) {
         bool hasMoved = false;
@@ -467,7 +469,7 @@ int main() {
 						}
 					}
 					//is the actual move command so long as you choose not to castle
-                    hasMoved = move(Game1, x_cor, y_cor, blacksTurn, en_passant, p_cor);
+                    hasMoved = move(Game1, x_cor, y_cor, blacksTurn, en_passant, px_cor, py_cor);
                 }
                 else {
                     cout<< "Not your piece, try again!\n";
@@ -548,7 +550,7 @@ int main() {
 		bool in_check=check(Game1, !blacksTurn);
 		if (in_check){
 			cout<<"King is in check \n";
-			bool in_check_mate=checkmate(Game1, !blacksTurn, en_passant, p_cor);
+			bool in_check_mate=checkmate(Game1, !blacksTurn, en_passant, px_cor, py_cor);
 			if (in_check_mate){
 				quit=true;
 				cout<<"Check-mate game is over! \n";
