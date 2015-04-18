@@ -92,7 +92,7 @@ Knight::Knight(bool isBlack) :Piece("knight", isBlack){}
             if (i<8){
                 if (x_cor-1>=0){
                     if (game.board[i][x_cor-1]!=0){
-                        if (game.board[i][x_cor]->isBlack!=game.board[y_cor][x_cor]->isBlack){
+                        if (game.board[i][x_cor-1]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                             x_cans.push(x_cor-1);
                             y_cans.push(i);
                         }
@@ -120,7 +120,7 @@ Knight::Knight(bool isBlack) :Piece("knight", isBlack){}
             if (i>=0){
                 if (x_cor-1>=0){
                     if (game.board[i][x_cor-1]!=0){
-                        if (game.board[i][x_cor]->isBlack!=game.board[y_cor][x_cor]->isBlack){
+                        if (game.board[i][x_cor-1]->isBlack!=game.board[y_cor][x_cor]->isBlack){
                             x_cans.push(x_cor-1);
                             y_cans.push(i);
                         }
@@ -546,25 +546,27 @@ Pawn::Pawn(bool isBlack) :Piece("pawn", isBlack){}
     void Pawn::generate_moves(Board game, int x_cor, int y_cor, stack<int> &x_cans, stack<int> &y_cans) {
             //Black moves down
             //board is upside down, so down is moving up the array
-            if (game.board[y_cor][x_cor]->isBlack){
+            if (game.board[y_cor][x_cor]->isBlack==true){
                 int i=y_cor+1;
                 if (i<8){
                     if (game.board[i][x_cor]==0){
                         x_cans.push(x_cor);
                         y_cans.push(i);
                     }
-                    if (x_cor+1<8){
-                        if (game.board[i][x_cor+1]!=0){
-                            if (game.board[i][x_cor+1]->isBlack!=game.board[y_cor][x_cor]->isBlack){
-                                x_cans.push(x_cor+1);
+					int j=x_cor+1;
+                    if (j<8){
+                        if (game.board[i][j]!=0){
+                            if (game.board[i][j]->isBlack==false){
+                                x_cans.push(j);
                                 y_cans.push(i);
                             }
                         }
                     }
-                    if (x_cor-1>=0){
-                        if (game.board[i][x_cor-1]!=0){
-                            if (game.board[i][x_cor-1]->isBlack!=game.board[y_cor][x_cor]->isBlack){
-                                x_cans.push(x_cor-1);
+					j=x_cor-1;
+                    if (j>=0){
+                        if (game.board[i][j]!=0){
+                            if (game.board[i][j]->isBlack==false){
+                                x_cans.push(j);
                                 y_cans.push(i);
                             }
                         }
@@ -582,39 +584,38 @@ Pawn::Pawn(bool isBlack) :Piece("pawn", isBlack){}
             }
             //White moves up
             //board is upside down, so moving up is moving down the array
-            else{
+            if (game.board[y_cor][x_cor]->isBlack==false){
                 int i=y_cor-1;
                 if (i>=0){
                     if (game.board[i][x_cor]==0){
                         x_cans.push(x_cor);
                         y_cans.push(i);
                     }
-                    if (x_cor+1<8){
-                        if (game.board[i][x_cor+1]!=0){
-                            if (game.board[i][x_cor+1]->isBlack!=game.board[y_cor][x_cor]->isBlack){
-                                x_cans.push(x_cor+1);
-                                y_cans.push(i);
-                            }
-                        }
-                    }
-                    if (x_cor-1>=0){
-                        if (game.board[i][x_cor]!=0){
-                            if (game.board[i][x_cor-1]->isBlack!=game.board[y_cor][x_cor]->isBlack){
-                                x_cans.push(x_cor-1);
-                                y_cans.push(i);
-                            }
-                        }
-                    }
+					if (x_cor+1<8){
+						if (game.board[i][x_cor+1]!=0){
+							if (game.board[i][x_cor+1]->isBlack==true){
+								x_cans.push(x_cor+1);
+								y_cans.push(i);
+							}
+						}
+					}
+					if (x_cor-1>=0){
+						if (game.board[i][x_cor-1]!=0){
+							if (game.board[i][x_cor-1]->isBlack==true){
+								x_cans.push(x_cor-1);
+								y_cans.push(i);
+							}
+						}
+					}
                 }
                 //Can move up two at start
-                if (y_cor==6){
-                    if (game.board[i][x_cor]==0){
-                        if (game.board[i-1][x_cor]==0){
-                            x_cans.push(x_cor);
-                            y_cans.push(i-1);
-                        }
-                    }
-                }
-
+				if (y_cor==6){
+					if (game.board[y_cor-1][x_cor]==0){
+						if (game.board[y_cor-2][x_cor]==0){
+							x_cans.push(x_cor);
+							y_cans.push(y_cor-2);
+						}
+					}
+				}
             }
-        }
+		}
