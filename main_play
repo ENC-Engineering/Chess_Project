@@ -295,74 +295,58 @@ bool checkmate(Board game, bool player_isBlack, bool &en_passant, int &px_cor, i
 bool castle_check_far(Board game, bool player_isBlack){
 	bool can_castle=true;
 	if (player_isBlack==true){
-		//has a special check for pawns of opposite color at any of the spaces
-		for(int i=1; i<5; i++){
-			if (game.board[6][i]!=0){
-				if (game.board[6][i]->type.compare("pawn")==0 && game.board[1][i]->isBlack==false){
-					can_castle=false;
-				}
+		bool in_check_there=false;
+		in_check_there=check(game, player_isBlack);
+		if (in_check_there==true){
+			can_castle=false;
+		}
+		if (in_check_there==false){
+			game.board[0][3]=game.board[0][4];
+			game.board[0][4]=0;
+			in_check_there=check(game, player_isBlack);
+			game.board[0][4]=game.board[0][3];
+			game.board[0][3]=0;
+			if (in_check_there==true){
+				can_castle=false;
 			}
 		}
-		//checks for all other pieces
-		for(int y_pos=0; y_pos<8; y_pos++){
-			for(int x_pos = 0; x_pos < 8; x_pos++){
-				if (game.board[y_pos][x_pos]!=0){
-					if (game.board[y_pos][x_pos]->isBlack != player_isBlack){
-						stack<int> can_xs;
-						stack<int> can_ys;
-						game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
-						while (!can_xs.empty() && !can_ys.empty()){
-							if ((can_xs.top()==3 && can_ys.top()==0)||(can_xs.top()==2 && can_ys.top()==0)||(can_xs.top()==4 && can_ys.top()==0)){
-								can_castle=false;
-								break;
-							}
-							can_xs.pop();
-							can_ys.pop();
-						}
-					}
-				}
-				if (can_castle==false){
-					break;
-				}
-			}
-			if (can_castle==false){
-				break;
+		if (in_check_there==false){
+			game.board[0][2]=game.board[0][4];
+			game.board[0][4]=0;
+			in_check_there=check(game, player_isBlack);
+			game.board[0][4]=game.board[0][2];
+			game.board[0][2]=0;
+			if (in_check_there==true){
+				can_castle=false;
 			}
 		}
 	}
 	else{
-		//has a special check for pawns of opposite color at any of the spaces
-		for(int i=1; i<5; i++){
-			if (game.board[1][i]!=0){
-				if (game.board[1][i]->type.compare("pawn")==0 && game.board[1][i]->isBlack){
+		if (player_isBlack==true){
+			bool in_check_there=false;
+			in_check_there=check(game, player_isBlack);
+			if (in_check_there==true){
+				can_castle=false;
+			}
+			if (in_check_there==false){
+				game.board[7][3]=game.board[7][4];
+				game.board[7][4]=0;
+				in_check_there=check(game, player_isBlack);
+				game.board[7][4]=game.board[7][3];
+				game.board[7][3]=0;
+				if (in_check_there==true){
 					can_castle=false;
 				}
 			}
-		}
-		//check for all other pieces
-		for(int y_pos=0; y_pos<8; y_pos++){
-			for(int x_pos = 0; x_pos < 8; x_pos++){
-				if (game.board[y_pos][x_pos]!=0){
-					if (game.board[y_pos][x_pos]->isBlack != player_isBlack){
-						stack<int> can_xs;
-						stack<int> can_ys;
-						game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
-						while (!can_xs.empty() && !can_ys.empty()){
-							if ((can_xs.top()==3 && can_ys.top()==7)||(can_xs.top()==2 && can_ys.top()==7)||(can_xs.top()==4 && can_ys.top()==7)){
-								can_castle=false;
-								break;
-							}
-							can_xs.pop();
-							can_ys.pop();
-						}
-					}
+			if (in_check_there==false){
+				game.board[7][2]=game.board[7][4];
+				game.board[7][4]=0;
+				in_check_there=check(game, player_isBlack);
+				game.board[7][4]=game.board[7][2];
+				game.board[7][2]=0;
+				if (in_check_there==true){
+					can_castle=false;
 				}
-				if (can_castle==false){
-					break;
-				}
-			}
-			if (can_castle==false){
-				break;
 			}
 		}
 	}
@@ -373,79 +357,64 @@ bool castle_check_far(Board game, bool player_isBlack){
 bool castle_check_close(Board game, bool player_isBlack){
 	bool can_castle=true;
 	if (player_isBlack==true){
-		//has a special check for pawns of opposite color at any of the spaces
-		for(int i=4; i<8; i++){
-			if (game.board[6][i]!=0){
-				if (game.board[6][i]->type.compare("pawn")==0 && game.board[1][i]->isBlack==false){
-					can_castle=false;
-				}
+		bool in_check_there=false;
+		in_check_there=check(game, player_isBlack);
+		if (in_check_there==true){
+			can_castle=false;
+		}
+		if (in_check_there==false){
+			game.board[0][5]=game.board[0][4];
+			game.board[0][4]=0;
+			in_check_there=check(game, player_isBlack);
+			game.board[0][4]=game.board[0][5];
+			game.board[0][5]=0;
+			if (in_check_there==true){
+				can_castle=false;
 			}
 		}
-		//checks for all other pieces
-		for(int y_pos=0; y_pos<8; y_pos++){
-			for(int x_pos = 0; x_pos < 8; x_pos++){
-				if (game.board[y_pos][x_pos]!=0){
-					if (game.board[y_pos][x_pos]->isBlack != player_isBlack){
-						stack<int> can_xs;
-						stack<int> can_ys;
-						game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
-						while (!can_xs.empty() && !can_ys.empty()){
-							if ((can_xs.top()==5 && can_ys.top()==0)||(can_xs.top()==6 && can_ys.top()==0)||(can_xs.top()==4 && can_ys.top()==0)){
-								can_castle=false;
-								break;
-							}
-							can_xs.pop();
-							can_ys.pop();
-						}
-					}
-				}
-				if (can_castle==false){
-					break;
-				}
-			}
-			if (can_castle==false){
-				break;
+		if (in_check_there==false){
+			game.board[0][6]=game.board[0][4];
+			game.board[0][4]=0;
+			in_check_there=check(game, player_isBlack);
+			game.board[0][4]=game.board[0][6];
+			game.board[0][6]=0;
+			if (in_check_there==true){
+				can_castle=false;
 			}
 		}
 	}
 	else{
-		//has a special check for pawns of opposite color at any of the spaces
-		for(int i=4; i<8; i++){
-			if (game.board[1][i]!=0){
-				if (game.board[1][i]->type.compare("pawn")==0 && game.board[1][i]->isBlack){
+		if (player_isBlack==true){
+			bool in_check_there=false;
+			in_check_there=check(game, player_isBlack);
+			if (in_check_there==true){
+				can_castle=false;
+			}
+			if (in_check_there==false){
+				game.board[7][5]=game.board[7][4];
+				game.board[7][4]=0;
+				in_check_there=check(game, player_isBlack);
+				game.board[7][4]=game.board[7][5];
+				game.board[7][5]=0;
+				if (in_check_there==true){
 					can_castle=false;
 				}
 			}
-		}
-		//checks for all other pieces
-		for(int y_pos=0; y_pos<8; y_pos++){
-			for(int x_pos = 0; x_pos < 8; x_pos++){
-				if (game.board[y_pos][x_pos]!=0){
-					if (game.board[y_pos][x_pos]->isBlack != player_isBlack){
-						stack<int> can_xs;
-						stack<int> can_ys;
-						game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
-						while (!can_xs.empty() && !can_ys.empty()){
-							if ((can_xs.top()==5 && can_ys.top()==7)||(can_xs.top()==6 && can_ys.top()==7)||(can_xs.top()==4 && can_ys.top()==7)){
-								can_castle=false;
-								break;
-							}
-							can_xs.pop();
-							can_ys.pop();
-						}
-					}
+			if (in_check_there==false){
+				game.board[7][6]=game.board[7][4];
+				game.board[7][4]=0;
+				in_check_there=check(game, player_isBlack);
+				game.board[7][4]=game.board[7][6];
+				game.board[7][6]=0;
+				if (in_check_there==true){
+					can_castle=false;
 				}
-				if (can_castle==false){
-					break;
-				}
-			}
-			if (can_castle==false){
-				break;
 			}
 		}
 	}
 	return can_castle;
 }
+
 
 //The actual game
 int main() {
