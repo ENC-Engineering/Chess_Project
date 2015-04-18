@@ -61,12 +61,11 @@ bool check(Board game, bool player_isBlack){
 bool move(Board game, int x_cor, int y_cor, bool blacksTurn) {
     //generates all moves for the piece you are moving
     bool has_moved=false;
-    
     stack<int> x_cans1;
     stack<int> y_cans1;
     stack<int> x_cans2;
     stack<int> y_cans2;
-    
+	//generates all moves for the piece
     game.board[y_cor][x_cor]->generate_moves(game, x_cor, y_cor, x_cans1, y_cans1);
     if (x_cans1.empty() || y_cans1.empty()) {
         cout<< "Cannot move \n";
@@ -144,6 +143,7 @@ bool checkmoves(Board game, int x_pos, int y_pos, bool player_isBlack){
     return can_block;
 }
 
+//Method for checkmate
 bool checkmate(Board game, bool player_isBlack){
     //assumes checkmate until proven wrong
     bool in_checkmate=true;
@@ -170,6 +170,164 @@ bool checkmate(Board game, bool player_isBlack){
     return in_checkmate;
 }
 
+//New functions that check for castling on the left side of kings
+bool castle_check_far(Board game, bool player_isBlack){
+	bool can_castle=true;
+	if (player_isBlack==true){
+		//has a special check for pawns of opposite color at any of the spaces
+		for(int i=1; i<5; i++){
+			if (game.board[6][i]!=0){
+				if (game.board[6][i]->type.compare("pawn")==0 && game.board[1][i]->isBlack==false){
+					can_castle=false;
+				}
+			}
+		}
+		//checks for all other pieces
+		for(int y_pos=0; y_pos<8; y_pos++){
+			for(int x_pos = 0; x_pos < 8; x_pos++){
+				if (game.board[y_pos][x_pos]!=0){
+					if (game.board[y_pos][x_pos]->isBlack != player_isBlack){
+						stack<int> can_xs;
+						stack<int> can_ys;
+						game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
+						while (!can_xs.empty() && !can_ys.empty()){
+							if ((can_xs.top()==3 && can_ys.top()==0)||(can_xs.top()==2 && can_ys.top()==0)||(can_xs.top()==4 && can_ys.top()==0)){
+								can_castle=false;
+								break;
+							}
+							can_xs.pop();
+							can_ys.pop();
+						}
+					}
+				}
+				if (can_castle==false){
+					break;
+				}
+			}
+			if (can_castle==false){
+				break;
+			}
+		}
+	}
+	else{
+		//has a special check for pawns of opposite color at any of the spaces
+		for(int i=1; i<5; i++){
+			if (game.board[1][i]!=0){
+				if (game.board[1][i]->type.compare("pawn")==0 && game.board[1][i]->isBlack){
+					can_castle=false;
+				}
+			}
+		}
+		//check for all other pieces
+		for(int y_pos=0; y_pos<8; y_pos++){
+			for(int x_pos = 0; x_pos < 8; x_pos++){
+				if (game.board[y_pos][x_pos]!=0){
+					if (game.board[y_pos][x_pos]->isBlack != player_isBlack){
+						stack<int> can_xs;
+						stack<int> can_ys;
+						game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
+						while (!can_xs.empty() && !can_ys.empty()){
+							if ((can_xs.top()==3 && can_ys.top()==7)||(can_xs.top()==2 && can_ys.top()==7)||(can_xs.top()==4 && can_ys.top()==7)){
+								can_castle=false;
+								break;
+							}
+							can_xs.pop();
+							can_ys.pop();
+						}
+					}
+				}
+				if (can_castle==false){
+					break;
+				}
+			}
+			if (can_castle==false){
+				break;
+			}
+		}
+	}
+	return can_castle;
+}
+
+//checks for castling on the right side of kings
+bool castle_check_close(Board game, bool player_isBlack){
+	bool can_castle=true;
+	if (player_isBlack==true){
+		//has a special check for pawns of opposite color at any of the spaces
+		for(int i=4; i<8; i++){
+			if (game.board[6][i]!=0){
+				if (game.board[6][i]->type.compare("pawn")==0 && game.board[1][i]->isBlack==false){
+					can_castle=false;
+				}
+			}
+		}
+		//checks for all other pieces
+		for(int y_pos=0; y_pos<8; y_pos++){
+			for(int x_pos = 0; x_pos < 8; x_pos++){
+				if (game.board[y_pos][x_pos]!=0){
+					if (game.board[y_pos][x_pos]->isBlack != player_isBlack){
+						stack<int> can_xs;
+						stack<int> can_ys;
+						game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
+						while (!can_xs.empty() && !can_ys.empty()){
+							if ((can_xs.top()==5 && can_ys.top()==0)||(can_xs.top()==6 && can_ys.top()==0)||(can_xs.top()==4 && can_ys.top()==0)){
+								can_castle=false;
+								break;
+							}
+							can_xs.pop();
+							can_ys.pop();
+						}
+					}
+				}
+				if (can_castle==false){
+					break;
+				}
+			}
+			if (can_castle==false){
+				break;
+			}
+		}
+	}
+	else{
+		//has a special check for pawns of opposite color at any of the spaces
+		for(int i=4; i<8; i++){
+			if (game.board[1][i]!=0){
+				if (game.board[1][i]->type.compare("pawn")==0 && game.board[1][i]->isBlack){
+					can_castle=false;
+				}
+			}
+		}
+		//checks for all other pieces
+		for(int y_pos=0; y_pos<8; y_pos++){
+			for(int x_pos = 0; x_pos < 8; x_pos++){
+				if (game.board[y_pos][x_pos]!=0){
+					if (game.board[y_pos][x_pos]->isBlack != player_isBlack){
+						stack<int> can_xs;
+						stack<int> can_ys;
+						game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
+						while (!can_xs.empty() && !can_ys.empty()){
+							if ((can_xs.top()==5 && can_ys.top()==7)||(can_xs.top()==6 && can_ys.top()==7)||(can_xs.top()==4 && can_ys.top()==7)){
+								can_castle=false;
+								break;
+							}
+							can_xs.pop();
+							can_ys.pop();
+						}
+					}
+				}
+				if (can_castle==false){
+					break;
+				}
+			}
+			if (can_castle==false){
+				break;
+			}
+		}
+	}
+	return can_castle;
+}
+
+
+//The actual game
 int main() {
     bool isBlack = false;
     Piece* pieces[6][2] =
@@ -185,6 +343,14 @@ int main() {
     Game1.printBoard();
     bool quit = false;
     bool blacksTurn = false;
+	//Sets up that none of the rooks or kings have moved
+	bool cb_far_not=true;
+	bool cb_close_not=true;
+	bool cw_far_not=true;
+	bool cw_close_not=true;
+	bool kb_not=true;
+	bool kw_not=true;
+	//starts the game until you choose to quit
     while (!quit) {
         bool hasMoved = false;
         if (blacksTurn) {
@@ -214,7 +380,88 @@ int main() {
             y_cor = 8 - y_cor;
             if (Game1.board[y_cor][x_cor]!=0){
                 if (Game1.board[y_cor][x_cor]->isBlack==blacksTurn) {
-                    cout<< "\n" << Game1.board[y_cor][x_cor]->type << Game1.board[y_cor][x_cor]->isBlack << "\n";
+                    cout<< "\nYou selected a " << Game1.board[y_cor][x_cor]->type<<"\n";
+					//Runs to see if you can castle
+					bool can_castle_far=false;
+					bool can_castle_close=false;
+					if (Game1.board[y_cor][x_cor]->type.compare("rook")==0 || Game1.board[y_cor][x_cor]->type.compare("king")==0){
+						if (kb_not){
+							if (blacksTurn==true) {
+								if (cb_far_not){
+									if (Game1.board[0][1]==0 && Game1.board[0][2]==0 && Game1.board[0][3]==0){
+										can_castle_far=castle_check_far(Game1,blacksTurn);
+									}
+								}
+								if (cb_close_not){
+									if (Game1.board[0][5]==0 && Game1.board[0][6]==0){
+										can_castle_close=castle_check_close(Game1,blacksTurn);
+									}
+								}
+							}
+						}
+						if (kw_not){
+							if (blacksTurn==false){
+								if (cw_far_not){
+									if (Game1.board[7][1]==0 && Game1.board[7][2]==0 && Game1.board[7][3]==0){
+										can_castle_far=castle_check_far(Game1,blacksTurn);
+									}
+								}
+								if (cw_close_not){
+									if (Game1.board[7][5]==0 && Game1.board[7][6]==0){
+										can_castle_close=castle_check_close(Game1,blacksTurn);
+									}
+								}
+							}
+						}
+						if (can_castle_close || can_castle_far){
+							cout<<"You can castle \n";
+							string input="";
+							cin>>input;
+							if (input.compare("1")==0){
+								if (can_castle_far){
+									cout<<"Would you like to castle far? \n 1: Yes \n (Anything Else): No";
+									cin>>input;
+								}
+								if (input.compare("1")==0 && can_castle_far){
+									if (blacksTurn==true){
+										Game1.board[0][3]=Game1.board[0][0]; 
+										Game1.board[0][2]=Game1.board[0][4];
+										Game1.board[0][0]=0;
+										Game1.board[0][4]=0;
+										break;
+									}
+									else {
+										Game1.board[7][3]=Game1.board[7][0]; 
+										Game1.board[7][2]=Game1.board[7][4];
+										Game1.board[7][0]=0;
+										Game1.board[7][4]=0;
+										break;
+									}
+								}
+								if (can_castle_close){
+									cout<<"Would you like to castle close? \n 1: Yes \n (Anything Else): No";
+									cin>>input;
+								}
+								else if (input.compare("1")==0 && can_castle_close){
+									if (blacksTurn==true){
+										Game1.board[0][5]=Game1.board[0][7]; 
+										Game1.board[0][6]=Game1.board[0][4];
+										Game1.board[0][7]=0;
+										Game1.board[0][4]=0;
+										break;
+									}
+									else {
+										Game1.board[7][5]=Game1.board[7][7]; 
+										Game1.board[7][6]=Game1.board[7][4];
+										Game1.board[7][7]=0;
+										Game1.board[7][4]=0;
+										break;
+									}
+								}
+							}
+						}
+					}
+					//is the actual move command so long as you choose not to castle
                     hasMoved = move(Game1, x_cor, y_cor, blacksTurn);
                 }
                 else {
@@ -226,7 +473,73 @@ int main() {
 				cout<<"No piece there \n";
 			}
         }
-		//Pawn promotion automatically makes it a queen
+		
+		//Runs all this after you move
+		//Checks to see if any of the rooks or kings have moved
+		if (Game1.board[0][0]!=0){
+			if (Game1.board[0][0]->type.compare("rook")!=0 || Game1.board[0][0]->isBlack==false){
+				cb_far_not=false;
+			}
+		}
+		else{
+			cb_far_not=false;
+		}
+		if (Game1.board[0][7]!=0){
+			if (Game1.board[0][7]->type.compare("rook")!=0 || Game1.board[0][7]->isBlack==false){
+				cb_close_not=false;
+			}
+		}
+		else{
+			cb_close_not=false;
+		}
+		if (Game1.board[7][0]!=0){
+			if (Game1.board[7][0]->type.compare("rook")!=0 || Game1.board[7][0]->isBlack==true){
+				cw_far_not=false;
+			}
+		}
+		else{
+			cw_far_not=false;
+		}
+		if (Game1.board[7][7]!=0){
+			if (Game1.board[7][7]->type.compare("rook")!=0 || Game1.board[7][7]->isBlack==true){
+				cw_close_not=false;
+			}
+		}
+		else{
+			cw_close_not=false;
+		}
+		if (Game1.board[0][4]!=0){
+			if (Game1.board[0][4]->type.compare("king")!=0|| Game1.board[0][4]->isBlack==false){
+				kb_not=false;
+			}
+		}
+		else{
+			kb_not=false;
+		}
+		if (Game1.board[7][4]!=0){
+			if (Game1.board[7][4]->type.compare("king")!=0|| Game1.board[7][4]->isBlack==true){
+				kw_not=false;
+			}
+		}
+		else{
+			kw_not=false;
+		}
+		//Pawn promotion automatically makes a pawn a queen
+		for (int i=0;i<8;i++){
+			if (Game1.board[7][i]!=0){
+				if (Game1.board[7][i]->type.compare("pawn")==0){
+					Game1.board[7][i]=pieces[2][0];
+					cout<<"\nPawn Promotion!\n";
+				}
+			}
+			if (Game1.board[0][i]!=0){
+				if (Game1.board[0][i]->type.compare("pawn")==0){
+					Game1.board[0][i]=pieces[2][1];
+					cout<<"\nPawn Promotion!\n";
+				}
+			}
+		}
+		//runs to see if you pute your oppenent in check
 		bool in_check=check(Game1, !blacksTurn);
 		if (in_check){
 			cout<<"King is in check \n";
