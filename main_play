@@ -37,7 +37,7 @@ bool check(Board game, bool player_isBlack){
                     //Generate move is a void method that fills the two stacks with all moves of that piece in game at (j,i)
                     game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
                     while (!can_xs.empty() && !can_ys.empty()){
-                        if (can_xs.top()==king_x && can_ys.top()==king_y){
+						if (can_xs.top()==king_x && can_ys.top()==king_y){
                             in_check=true;
                             break;
                         }
@@ -58,12 +58,8 @@ bool check(Board game, bool player_isBlack){
     return in_check;
 }
 
-//Going to create a checkmoves function which is like move but automatically moves to all possible places and checks for check
-//Outline of checkmate when checkmoves and check is running completely
-
-bool move(Board game, int x_cor, int y_cor) {
+bool move(Board game, int x_cor, int y_cor, bool blacksTurn) {
     //generates all moves for the piece you are moving
-    bool player_color_isBlack = game.board[y_cor][x_cor]->isBlack;
     bool has_moved=false;
     
     stack<int> x_cans1;
@@ -73,7 +69,7 @@ bool move(Board game, int x_cor, int y_cor) {
     
     game.board[y_cor][x_cor]->generate_moves(game, x_cor, y_cor, x_cans1, y_cans1);
     if (x_cans1.empty() || y_cans1.empty()) {
-        cout<< "Cannot move";
+        cout<< "Cannot move \n";
     }
     else {
         while (!x_cans1.empty() && !y_cans1.empty()) {
@@ -88,9 +84,11 @@ bool move(Board game, int x_cor, int y_cor) {
     //inputs where you would like to move
     int x_move=0;
     int y_move=0;
-    cout<<"Please enter the (x, y) you would like to move to";
-    cin>>x_move;
-    cin>>y_move;
+	if (!x_cans2.empty() && !y_cans2.empty()){
+		cout<<"Please enter the (x, y) you would like to move to \n";
+		cin>>x_move;
+		cin>>y_move;
+	}
     x_move = x_move - 1;
     y_move = 8 - y_move;
     //checks to see if the move is on the generated move list
@@ -101,17 +99,17 @@ bool move(Board game, int x_cor, int y_cor) {
             game.board[y_move][x_move]=game.board[y_cor][x_cor];
             game.board[y_cor][x_cor]=0;
             //Makes sure the move doesn't put you in check or else it moves you back
-           // bool put_yourself_incheck = check(game, player_color_isBlack);
-            //if (put_yourself_incheck){
-            //    cout<<"You can't move there, it puts you in check";
-            //    game.board[y_move][x_move]=temp2;
-            //    game.board[y_cor][x_cor]=temp1;
-            //    break;
-           // }
-           // else {
+            bool put_yourself_incheck = check(game, blacksTurn);
+            if (put_yourself_incheck==true){
+			   cout<<"You can't move there, it puts you in check";
+			   game.board[y_move][x_move]=temp2;
+               game.board[y_cor][x_cor]=temp1;
+               break;
+            }
+            else {
                 has_moved=true;
                 break;
-           // }
+			}
         }
         x_cans2.pop();
         y_cans2.pop();
@@ -126,9 +124,7 @@ bool checkmoves(Board game, int x_pos, int y_pos, bool player_isBlack){
     stack<int> can_xs;
     stack<int> can_ys;
     game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
-    //Then temporarily moves the piece to all the possible places and see if it can stop the check
     while (!can_xs.empty() && !can_ys.empty()){
-        //temporarily moves the piece to see if it would stop check
         int x_move=can_xs.top();
         int y_move=can_ys.top();
         Piece* temp1=game.board[y_pos][x_pos];
@@ -139,7 +135,7 @@ bool checkmoves(Board game, int x_pos, int y_pos, bool player_isBlack){
         game.board[y_move][x_move]=temp2;
         game.board[y_pos][x_pos]=temp1;
         if (!in_check){
-            can_block=false;
+            can_block=true;
             break;
         }
         can_xs.pop();
@@ -158,16 +154,16 @@ bool checkmate(Board game, bool player_isBlack){
                     //Checks to see if this piece can block the check, assumes it can't
                     bool can_block=false;
                     can_block = checkmoves(game, x_pos, y_pos, player_isBlack);
-                    if (can_block){
+                    if (can_block==true){
                         in_checkmate=false;
                     }
                 }
             }
-            if (!in_checkmate){
+            if (in_checkmate==false){
                 break;
             }
         }
-        if (!in_checkmate){
+        if (in_checkmate==false){
             break;
         }
     }
@@ -211,7 +207,7 @@ int main() {
             cin>> x_cor;
             cin>> y_cor;
             if (x_cor<1 || x_cor>8 || y_cor<1 || y_cor>8) {
-                cout<< "Error: Invalid Space, try agian.\n";
+                cout<< "Error: Invalid Space, try again.\n";
                 continue;
             }
             x_cor = x_cor - 1;
@@ -219,20 +215,27 @@ int main() {
             if (Game1.board[y_cor][x_cor]!=0){
                 if (Game1.board[y_cor][x_cor]->isBlack==blacksTurn) {
                     cout<< "\n" << Game1.board[y_cor][x_cor]->type << Game1.board[y_cor][x_cor]->isBlack << "\n";
-                    hasMoved = move(Game1, x_cor, y_cor);
-                    if (hasMoved == true) {
-                        cout<< "Yay!\n";
-                    }
-                    else {
-                        cout<< "Error\n";
-                    }
+                    hasMoved = move(Game1, x_cor, y_cor, blacksTurn);
                 }
                 else {
                     cout<< "Not your piece, try again!\n";
                     continue;
                 }
             }
+			else {
+				cout<<"No piece there \n";
+			}
         }
+		//Pawn promotion automatically makes it a queen
+		bool in_check=check(Game1, !blacksTurn);
+		if (in_check){
+			cout<<"King is in check \n";
+			bool in_check_mate=checkmate(Game1, !blacksTurn);
+			if (in_check_mate){
+				quit=true;
+				cout<<"Check-mate game is over! \n";
+			}
+		}
         blacksTurn = !blacksTurn;
         Game1.printBoard();
     }
