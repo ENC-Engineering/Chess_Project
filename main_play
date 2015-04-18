@@ -58,13 +58,30 @@ bool check(Board game, bool player_isBlack){
     return in_check;
 }
 
-bool move(Board game, int x_cor, int y_cor, bool blacksTurn) {
+bool move(Board game, int x_cor, int y_cor, bool blacksTurn, bool &en_passant, int &px_cor,int &py_cor) {
     //generates all moves for the piece you are moving
     bool has_moved=false;
     stack<int> x_cans1;
     stack<int> y_cans1;
     stack<int> x_cans2;
     stack<int> y_cans2;
+	//generates the en_passant if possible
+	if (game.board[y_cor][x_cor]->type.compare("pawn")==0){
+		if (en_passant){
+			if ((x_cor==px_cor-1)||(x_cor==px_cor+1)){
+				if (y_cor==py_cor){
+					if (blacksTurn){
+						x_cans1.push(px_cor);
+						y_cans1.push(py_cor+1);
+					}
+					else {
+						x_cans1.push(px_cor);
+						y_cans1.push(py_cor-1);
+					}
+				}
+			}
+		}
+	}
 	//generates all moves for the piece
     game.board[y_cor][x_cor]->generate_moves(game, x_cor, y_cor, x_cans1, y_cans1);
     if (x_cans1.empty() || y_cans1.empty()) {
@@ -90,61 +107,165 @@ bool move(Board game, int x_cor, int y_cor, bool blacksTurn) {
 	}
     x_move = x_move - 1;
     y_move = 8 - y_move;
-    //checks to see if the move is on the generated move list
-    while (!x_cans2.empty() && !y_cans2.empty()){
-        if (x_move==x_cans2.top() && y_move==y_cans2.top()){
-            Piece* temp1=game.board[y_cor][x_cor];
-            Piece* temp2=game.board[y_move][x_move];
-            game.board[y_move][x_move]=game.board[y_cor][x_cor];
-            game.board[y_cor][x_cor]=0;
-            //Makes sure the move doesn't put you in check or else it moves you back
-            bool put_yourself_incheck = check(game, blacksTurn);
-            if (put_yourself_incheck==true){
-			   cout<<"You can't move there, it puts you in check";
-			   game.board[y_move][x_move]=temp2;
-               game.board[y_cor][x_cor]=temp1;
-               break;
-            }
-            else {
-                has_moved=true;
-                break;
+	//if you want to perform an en_passant which is in the stack it will run this
+	if (!x_cans2.empty() && !y_cans2.empty()){
+		if (en_passant){
+			if (game.board[y_cor][x_cor]->type.compare("pawn")==0){
+				if (x_move==px_cor && y_move==py_cor+1){
+					if (blacksTurn){
+						Piece* temp1=game.board[y_cor][x_cor];
+						Piece* temp2=game.board[py_cor][px_cor];
+						game.board[y_move][x_move]=game.board[y_cor][x_cor];
+						game.board[py_cor][px_cor]=0;
+						game.board[y_cor][x_cor]=0;
+						bool put_yourself_incheck = check(game, blacksTurn);
+						if (put_yourself_incheck==true){
+							cout<<"You can't move there, it puts you in check \n";
+							game.board[y_move][x_move]=0;
+							game.board[y_cor][x_cor]=temp1;
+							game.board[py_cor][px_cor]=temp2;
+						}
+						else {
+							has_moved=true;
+						}		
+					}
+				}
+				if (x_move==px_cor && y_move==py_cor-1){
+					if (!blacksTurn){
+						Piece* temp1=game.board[y_cor][x_cor];
+						Piece* temp2=game.board[py_cor][px_cor];
+						game.board[y_move][x_move]=game.board[y_cor][x_cor];
+						game.board[py_cor][px_cor]=0;
+						game.board[y_cor][x_cor]=0;
+						bool put_yourself_incheck = check(game, blacksTurn);
+						if (put_yourself_incheck==true){
+							cout<<"You can't move there, it puts you in check \n";
+							game.board[y_move][x_move]=0;
+							game.board[y_cor][x_cor]=temp1;
+							game.board[py_cor][px_cor]=temp2;
+						}
+						else {
+							has_moved=true;
+						}		
+					}
+				}
 			}
-        }
-        x_cans2.pop();
-        y_cans2.pop();
-    }
-    return has_moved;
+		}
+	}
+    //checks to see if the move is on the generated move list
+	if (has_moved==false){
+		while (!x_cans2.empty() && !y_cans2.empty()){
+			if (x_move==x_cans2.top() && y_move==y_cans2.top()){
+				Piece* temp1=game.board[y_cor][x_cor];
+				Piece* temp2=game.board[y_move][x_move];
+				game.board[y_move][x_move]=game.board[y_cor][x_cor];
+				game.board[y_cor][x_cor]=0;
+				//Makes sure the move doesn't put you in check or else it moves you back
+				bool put_yourself_incheck = check(game, blacksTurn);
+				if (put_yourself_incheck==true){
+					cout<<"You can't move there, it puts you in check \n";
+					game.board[y_move][x_move]=temp2;
+					game.board[y_cor][x_cor]=temp1;
+					break;
+				}
+				else {
+					has_moved=true;
+					break;
+				}
+			}
+			x_cans2.pop();
+			y_cans2.pop();
+		}
+	}
+	if (has_moved){
+		if (game.board[y_move][x_move]!=0){
+			if (game.board[y_move][x_move]->type.compare("pawn")==0){
+				if (y_cor+2==y_move || y_cor-2==y_move){
+					en_passant=true;
+					px_cor=x_move;
+					py_cor=y_move;
+				}
+				else{
+					en_passant=false;
+				}
+			}
+			else{
+				en_passant=false;
+			}
+		}
+	}
+	return has_moved;
 }
 
 //checkmoves without generate moves
-bool checkmoves(Board game, int x_pos, int y_pos, bool player_isBlack){
+bool checkmoves(Board game, int x_pos, int y_pos, bool player_isBlack, bool &en_passant, int &px_cor, int &py_cor){
     //Starts by generating all the moves the piece can do
     bool can_block=false;
     stack<int> can_xs;
     stack<int> can_ys;
-    game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
-    while (!can_xs.empty() && !can_ys.empty()){
-        int x_move=can_xs.top();
-        int y_move=can_ys.top();
-        Piece* temp1=game.board[y_pos][x_pos];
-        Piece* temp2=game.board[y_move][x_move];
-        game.board[y_move][x_move]=game.board[y_pos][x_pos];
-        game.board[y_pos][x_pos]=0;
-        bool in_check = check(game, player_isBlack);
-        game.board[y_move][x_move]=temp2;
-        game.board[y_pos][x_pos]=temp1;
-        if (!in_check){
-            can_block=true;
-            break;
-        }
-        can_xs.pop();
-        can_ys.pop();
-    }
+	//if its a pawn pull a enpassant if possible
+	if (game.board[y_pos][x_pos]->type.compare("pawn")==0){
+		if (en_passant){
+			if ((x_pos==px_cor-1)||(x_pos==px_cor+1)){
+				if (y_pos==py_cor){
+					if (player_isBlack){
+						Piece* temp1=game.board[y_pos][x_pos];
+						Piece* temp2=game.board[py_cor][px_cor];
+						game.board[py_cor+1][px_cor]=game.board[y_pos][x_pos];
+						game.board[py_cor][px_cor]=0;
+						game.board[y_pos][x_pos]=0;
+						bool in_check = check(game, player_isBlack);
+						game.board[py_cor+1][px_cor]=0;
+						game.board[y_pos][x_pos]=temp1;
+						game.board[py_cor][px_cor]=temp2;
+						if (!in_check){
+							can_block=true;
+						}
+					}
+					else{
+						Piece* temp1=game.board[y_pos][x_pos];
+						Piece* temp2=game.board[py_cor][px_cor];
+						game.board[py_cor-1][px_cor]=game.board[y_pos][x_pos];
+						game.board[py_cor][px_cor]=0;
+						game.board[y_pos][x_pos]=0;
+						bool in_check = check(game, player_isBlack);
+						game.board[py_cor-1][px_cor]=0;
+						game.board[y_pos][x_pos]=temp1;
+						game.board[py_cor][px_cor]=temp2;
+						if (!in_check){
+							can_block=true;
+						}
+					}
+				}
+			}
+		}
+	}
+	//it can block any place
+	if (can_block==false){
+		game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
+		while (!can_xs.empty() && !can_ys.empty()){
+			int x_move=can_xs.top();
+			int y_move=can_ys.top();
+			Piece* temp1=game.board[y_pos][x_pos];
+			Piece* temp2=game.board[y_move][x_move];
+			game.board[y_move][x_move]=game.board[y_pos][x_pos];
+			game.board[y_pos][x_pos]=0;
+			bool in_check = check(game, player_isBlack);
+			game.board[y_move][x_move]=temp2;
+			game.board[y_pos][x_pos]=temp1;
+			if (!in_check){
+				can_block=true;
+				break;
+			}
+			can_xs.pop();
+			can_ys.pop();
+		}
+	}
     return can_block;
 }
 
-//Method for checkmate
-bool checkmate(Board game, bool player_isBlack){
+//checks for checkmate
+bool checkmate(Board game, bool player_isBlack, bool &en_passant, int &px_cor, int &py_cor){
     //assumes checkmate until proven wrong
     bool in_checkmate=true;
     for(int y_pos=0; y_pos<8; y_pos++){
@@ -153,7 +274,7 @@ bool checkmate(Board game, bool player_isBlack){
                 if (game.board[y_pos][x_pos]->isBlack==player_isBlack){
                     //Checks to see if this piece can block the check, assumes it can't
                     bool can_block=false;
-                    can_block = checkmoves(game, x_pos, y_pos, player_isBlack);
+                    can_block = checkmoves(game, x_pos, y_pos, player_isBlack, en_passant, px_cor, py_cor);
                     if (can_block==true){
                         in_checkmate=false;
                     }
@@ -325,8 +446,6 @@ bool castle_check_close(Board game, bool player_isBlack){
 	}
 	return can_castle;
 }
-
-
 
 //The actual game
 int main() {
