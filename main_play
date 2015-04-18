@@ -343,14 +343,16 @@ int main() {
     Game1.printBoard();
     bool quit = false;
     bool blacksTurn = false;
-	//Sets up that none of the rooks or kings have moved
+	//Sets up that none of the rooks or kings have moved and no en_passant
 	bool cb_far_not=true;
 	bool cb_close_not=true;
 	bool cw_far_not=true;
 	bool cw_close_not=true;
 	bool kb_not=true;
 	bool kw_not=true;
-	//starts the game until you choose to quit
+	bool en_passant=false;
+	int p_cor=0;
+	//runs the game until you choose to quit or checkmate occurs
     while (!quit) {
         bool hasMoved = false;
         if (blacksTurn) {
@@ -416,8 +418,7 @@ int main() {
 						if (can_castle_close || can_castle_far){
 							cout<<"You can castle \n";
 							string input="";
-							cin>>input;
-							if (input.compare("1")==0){
+							if (input.compare("1")!=0 ||input.compare("1")!=0 ){
 								if (can_castle_far){
 									cout<<"Would you like to castle far? \n 1: Yes \n (Anything Else): No";
 									cin>>input;
@@ -428,6 +429,7 @@ int main() {
 										Game1.board[0][2]=Game1.board[0][4];
 										Game1.board[0][0]=0;
 										Game1.board[0][4]=0;
+										en_passant=false;
 										break;
 									}
 									else {
@@ -435,6 +437,7 @@ int main() {
 										Game1.board[7][2]=Game1.board[7][4];
 										Game1.board[7][0]=0;
 										Game1.board[7][4]=0;
+										en_passant=false;
 										break;
 									}
 								}
@@ -448,6 +451,7 @@ int main() {
 										Game1.board[0][6]=Game1.board[0][4];
 										Game1.board[0][7]=0;
 										Game1.board[0][4]=0;
+										en_passant=false;
 										break;
 									}
 									else {
@@ -455,6 +459,7 @@ int main() {
 										Game1.board[7][6]=Game1.board[7][4];
 										Game1.board[7][7]=0;
 										Game1.board[7][4]=0;
+										en_passant=false;
 										break;
 									}
 								}
@@ -462,7 +467,7 @@ int main() {
 						}
 					}
 					//is the actual move command so long as you choose not to castle
-                    hasMoved = move(Game1, x_cor, y_cor, blacksTurn);
+                    hasMoved = move(Game1, x_cor, y_cor, blacksTurn, en_passant, p_cor);
                 }
                 else {
                     cout<< "Not your piece, try again!\n";
@@ -543,7 +548,7 @@ int main() {
 		bool in_check=check(Game1, !blacksTurn);
 		if (in_check){
 			cout<<"King is in check \n";
-			bool in_check_mate=checkmate(Game1, !blacksTurn);
+			bool in_check_mate=checkmate(Game1, !blacksTurn, en_passant, p_cor);
 			if (in_check_mate){
 				quit=true;
 				cout<<"Check-mate game is over! \n";
