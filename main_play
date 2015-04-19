@@ -1007,17 +1007,15 @@ int main() {
                                         Game1.board[0][7]=0;
                                         Game1.board[0][4]=0;
                                         en_passant=false;
-                                        //break;
+                                        break;
                                     }
                                     else {
-                                        cout<< "6\n";
                                         Game1.board[7][5]=Game1.board[7][7]; 
                                         Game1.board[7][6]=Game1.board[7][4];
                                         Game1.board[7][7]=0;
                                         Game1.board[7][4]=0;
                                         en_passant=false;
-                                        cout<< "7\n";
-                                        //break;
+                                        break;
                                     }
                                 }
                                 else if (input.compare("2")==0){
