@@ -1,9 +1,3 @@
-#ifndef COP3503_Project_chess_pieces_h__included__
-#define COP3503_Project_chess_pieces_h__included__
-
-#include <iostream>
-#include <stdio.h>
-#include <string>
 #include <stack>
 class Board;
 
