@@ -9,12 +9,12 @@ Board::Board(int boardNum, Piece* pieces[6][2]) {
     setup(board, pieces);
 }
 void Board::deleteBoard() {
-        for (int i=7; i>=0; i--) {
-            delete[] board[i];
-        }
-        delete[] board;
-        //delete this;
+    for (int i=7; i>=0; i--) {
+        delete[] board[i];
     }
+    delete[] board;
+    //delete this;
+}
 void Board::setup(Piece*** &board, Piece* pieces[6][2]) {
     
     board = new Piece**[8];
@@ -58,37 +58,127 @@ void Board::setup(Piece*** &board, Piece* pieces[6][2]) {
                 board[i][j] = 0;
         }
     }
-    board[2][6] = pieces[0][1];
 }
 
 void Board::printBoard() {
-    cout<< "\t\t";
+    cout<< "\n\n\n\n\n\n\n\n\n\n\t\t ";
     for(int i = 0; i < 8; i++){
-        cout << " "<< i+1 << "\t\t\t";
+        cout << " "<< (char)(97+i) << "\t\t\t ";
     }
     for(int i = 0; i < 8; i++){
-        cout<< "\n\t_________________________________________________________________________________________________\n";
-        for(int i = 0; i <= 8; i++){
-            cout << "\t|    \t";
+        cout<< "\n\t_________________________________________________________________________________________________\n\t";
+        for(int k = 0; k <= 8; k++){
+            if (k==8) {
+                cout<< "|";
+            }
+            else if ((i+k)%2 ==0) {
+                cout << "|   \t\t";
+            }
+            else {
+                cout << "||||||||||||";
+            }
         }
-        cout << "\n" << 8-i << "\t|\t";
+        cout << "\n" << 8-i << "\t";
         for(int j = 0; j < 8; j++){
+            if (j==0) {
+                cout<< "|";
+            }
             if (board[i][j]!=0) {
                 if (board[i][j]->isBlack) {
-                    cout<< board[i][j]->type<<"B\t|\t";
+                    string print = board[i][j]->type;
+                    print = print + "B";
+                    long p = 11 - print.size();
+                    if ((i+j)%2 !=0) {
+                        while (p >= 2) {
+                            print = "|" + print + "|";
+                            p = p-2;
+                        }
+                        if (p==1) {
+                            print = print + "|";
+                        }
+                        if (j!=0) {
+                            print = "|" + print;
+                        }
+                        cout<< print << "|";
+                    }
+                    else {
+                        while (p >= 2) {
+                            print = " " + print + " ";
+                            p = p-2;
+                        }
+                        if (p==1) {
+                            print = print + " ";
+                        }
+                        if (j==7) {
+                            print = print + "|";
+                        }
+                        cout << print;
+                    }
                 }
                 else {
-                    cout<< board[i][j]->type<<"W\t|\t";
+                    string print = board[i][j]->type;
+                    print = print + "W";
+                    long p = 11 - print.size();
+                    if ((i+j)%2 !=0) {
+                        while (p >= 2) {
+                            print = "|" + print + "|";
+                            p = p-2;
+                        }
+                        if (p==1) {
+                            print = print + "|";
+                        }
+                        if (j!=0) {
+                            print = "|" + print;
+                        }
+                        cout<< print << "|";
+                    }
+                    else {
+                        while (p >= 2) {
+                            print = " " + print + " ";
+                            p = p-2;
+                        }
+                        if (p==1) {
+                            print = print + " ";
+                        }
+                        if (j==7) {
+                            print = print + "|";
+                        }
+                        cout << print;
+                    }
                 }
             }
             else {
-                cout<< "\t   \t|\t";
+                if ((i+j)%2 ==0) {
+                    cout << "    \t\t";
+                    if (j==7) {
+                        cout<< "|";
+                    }
+                }
+                else {
+                    cout << "||||||||||||";
+                    if (j!=0) {
+                        cout<< "|";
+                    }
+                }
             }
         }
-        cout<< "\n";
-        for(int i = 0; i <= 8; i++){
-           cout << "\t|    \t";
+        cout<< "\t" << 8-i;
+        cout<< "\n\t";
+        for(int k = 0; k <= 8; k++){
+            if (k==8) {
+                cout<< "|";
+            }
+            else if ((i+k)%2 ==0) {
+                cout << "|   \t\t";
+            }
+            else {
+                cout << "||||||||||||";
+            }
         }
     }
-    cout<< "\n\t__________________________________________________________________________________________________\n\n";
+    cout<< "\n\t__________________________________________________________________________________________________\n\n\t\t";
+    for(int i = 0; i < 8; i++){
+        cout << " "<< (char)(97+i) << "\t\t\t ";
+    }
+    cout << "\n\n";
 }
