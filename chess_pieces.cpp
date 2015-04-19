@@ -508,7 +508,6 @@ King::King(bool isBlack) :Piece("king", isBlack){}
                 else {
                     x_cans.push(x_cor);
                     y_cans.push(i);
-                    cout<<"("<<x_cor<<","<<i<<") ";
                 }
             }
             //right direction
@@ -618,4 +617,4 @@ Pawn::Pawn(bool isBlack) :Piece("pawn", isBlack){}
 					}
 				}
             }
-		}
+        }
