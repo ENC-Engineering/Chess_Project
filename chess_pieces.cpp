@@ -448,8 +448,8 @@ void King::generate_moves(Board game, int x_cor, int y_cor, stack<int> &x_cans, 
             }
         }
         else {
-            x_cans.push(i);
-            y_cans.push(j);
+            x_cans.push(j);
+            y_cans.push(i);
         }
     }
     //up left direction
