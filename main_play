@@ -1,6 +1,6 @@
 #include <iostream>
-#include <string>
 #include <sstream>
+#include <string>
 #include "chess_board.h"
 #include "chess_pieces.h"
 
@@ -830,6 +830,14 @@ int main() {
 	int px_cor=0;
 	int py_cor=0;
 	//runs the game until you choose to quit or checkmate occurs
+	bool AI;
+	cout<<"One for AI anything else for two people \n";
+	string AI_maybe;
+	cin>>AI_maybe;
+	if (AI_maybe.compare("1")==0){
+		AI=true;
+		cout<<"Ai selected \n";
+	}
     while (!quit) {
         bool hasMoved = false;
         if (blacksTurn) {
@@ -893,7 +901,7 @@ int main() {
 							}
 						}
 						if (can_castle_close || can_castle_far){
-							cout<<"You can castle \n";
+							cout<<"\nYou can castle \n";
 							string input="";
 							if (input.compare("1")!=0 ||input.compare("1")!=0 ){
 								if (can_castle_far){
@@ -922,7 +930,7 @@ int main() {
 									cout<<"Would you like to castle close? \n 1: Yes \n (Anything Else): No";
 									cin>>input;
 								}
-								else if (input.compare("1")==0 && can_castle_close){
+								if (input.compare("1")==0 && can_castle_close){
 									if (blacksTurn==true){
 										Game1.board[0][5]=Game1.board[0][7]; 
 										Game1.board[0][6]=Game1.board[0][4];
@@ -955,7 +963,6 @@ int main() {
 				cout<<"No piece there \n";
 			}
         }
-		
 		//Runs all this after you move
 		//Checks to see if any of the rooks or kings have moved
 		if (Game1.board[0][0]!=0){
@@ -1031,8 +1038,88 @@ int main() {
 				cout<<"Check-mate game is over! \n";
 			}
 		}
-        blacksTurn = !blacksTurn;
-        Game1.printBoard();
+		if (!AI){
+			Game1.printBoard();
+			blacksTurn = !blacksTurn;
+		}
+		else {
+				AI_move(Game1, in_check, en_passant, px_cor, py_cor);
+					//Checks to see if any of the rooks or kings have moved
+				if (Game1.board[0][0]!=0){
+					if (Game1.board[0][0]->type.compare("rook")!=0 || Game1.board[0][0]->isBlack==false){
+						cb_far_not=false;
+					}
+				}
+				else{
+					cb_far_not=false;
+				}
+				if (Game1.board[0][7]!=0){
+					if (Game1.board[0][7]->type.compare("rook")!=0 || Game1.board[0][7]->isBlack==false){
+						cb_close_not=false;
+					}
+				}
+				else{
+					cb_close_not=false;
+				}
+				if (Game1.board[7][0]!=0){
+					if (Game1.board[7][0]->type.compare("rook")!=0 || Game1.board[7][0]->isBlack==true){
+						cw_far_not=false;
+					}
+				}
+				else{
+					cw_far_not=false;
+				}
+				if (Game1.board[7][7]!=0){
+					if (Game1.board[7][7]->type.compare("rook")!=0 || Game1.board[7][7]->isBlack==true){
+						cw_close_not=false;
+					}
+				}
+				else{
+					cw_close_not=false;
+				}
+				if (Game1.board[0][4]!=0){
+					if (Game1.board[0][4]->type.compare("king")!=0|| Game1.board[0][4]->isBlack==false){
+						kb_not=false;
+					}
+				}
+				else{
+					kb_not=false;
+				}
+				if (Game1.board[7][4]!=0){
+					if (Game1.board[7][4]->type.compare("king")!=0|| Game1.board[7][4]->isBlack==true){
+						kw_not=false;
+					}
+				}
+				else{
+					kw_not=false;
+				}
+				//Pawn promotion automatically makes a pawn a queen
+				for (int i=0;i<8;i++){
+					if (Game1.board[7][i]!=0){
+						if (Game1.board[7][i]->type.compare("pawn")==0){
+							Game1.board[7][i]=pieces[2][0];
+							cout<<"\nPawn Promotion!\n";
+						}
+					}
+					if (Game1.board[0][i]!=0){
+						if (Game1.board[0][i]->type.compare("pawn")==0){
+							Game1.board[0][i]=pieces[2][1];
+							cout<<"\nPawn Promotion!\n";
+						}
+					}
+				}
+				//runs to see if you pute your oppenent in check
+				bool in_check=check(Game1, blacksTurn);
+				if (in_check){
+					cout<<"King is in check \n";
+					bool in_check_mate=checkmate(Game1, !blacksTurn, en_passant, px_cor, py_cor);
+					if (in_check_mate){
+						quit=true;
+						cout<<"Check-mate game is over! \n";
+					}
+				}
+				Game1.printBoard();
+		}
     }
     Game1.deleteBoard();
     return 0;
