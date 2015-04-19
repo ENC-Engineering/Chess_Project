@@ -68,6 +68,7 @@ bool move(Board game, int x_cor, int y_cor, bool blacksTurn, bool &en_passant, i
     stack<int> y_cans1;
     stack<int> x_cans2;
     stack<int> y_cans2;
+    bool empty_stacks=false;
     //generates the en_passant if possible
     if (game.board[y_cor][x_cor]->type.compare("pawn")==0) {
         if (en_passant){
@@ -88,7 +89,8 @@ bool move(Board game, int x_cor, int y_cor, bool blacksTurn, bool &en_passant, i
     //generates all moves for the piece
     game.board[y_cor][x_cor]->generate_moves(game, x_cor, y_cor, x_cans1, y_cans1);
     if (x_cans1.empty() || y_cans1.empty()) {
-        cout<< "Cannot move.\n";
+        cout<< "\n No Available Moves.\n";
+	empty_stacks=true;
     }
     else {
         bool first = true;
@@ -124,7 +126,7 @@ bool move(Board game, int x_cor, int y_cor, bool blacksTurn, bool &en_passant, i
     if (!x_cans2.empty() && !y_cans2.empty()){
         if (en_passant){
             if (game.board[y_cor][x_cor]->type.compare("pawn")==0){
-                if (x_move==px_cor && y_move==py_cor+1){
+                if (x_move==px_cor && y_move==py_cor+1 && x_move==x_cans2.top() && y_move==y_cans2.top()){
                     if (blacksTurn){
                         Piece* temp1=game.board[y_cor][x_cor];
                         Piece* temp2=game.board[py_cor][px_cor];
@@ -143,7 +145,7 @@ bool move(Board game, int x_cor, int y_cor, bool blacksTurn, bool &en_passant, i
                         }
                     }
                 }
-                if (x_move==px_cor && y_move==py_cor-1){
+                if (x_move==px_cor && y_move==py_cor-1 && x_move==x_cans2.top() && y_move==y_cans2.top()){
                     if (!blacksTurn){
                         Piece* temp1=game.board[y_cor][x_cor];
                         Piece* temp2=game.board[py_cor][px_cor];
@@ -166,9 +168,11 @@ bool move(Board game, int x_cor, int y_cor, bool blacksTurn, bool &en_passant, i
         }
     }
     //checks to see if the move is on the generated move list
+    bool valid_move=false;
     if (has_moved==false){
         while (!x_cans2.empty() && !y_cans2.empty()){
             if (x_move==x_cans2.top() && y_move==y_cans2.top()){
+		valid_move=true;
                 Piece* temp1=game.board[y_cor][x_cor];
                 Piece* temp2=game.board[y_move][x_move];
                 game.board[y_move][x_move]=game.board[y_cor][x_cor];
@@ -176,7 +180,7 @@ bool move(Board game, int x_cor, int y_cor, bool blacksTurn, bool &en_passant, i
                 //Makes sure the move doesn't put you in check or else it moves you back
                 bool put_yourself_incheck = check(game, blacksTurn);
                 if (put_yourself_incheck==true){
-                    cout<<"\nYou cannot move there, it puts you in check.\n";
+                    cout<<"\nYou cannot move there, it puts you in check.\n Please try again.\n";
                     game.board[y_move][x_move]=temp2;
                     game.board[y_cor][x_cor]=temp1;
                     break;
@@ -189,6 +193,9 @@ bool move(Board game, int x_cor, int y_cor, bool blacksTurn, bool &en_passant, i
             x_cans2.pop();
             y_cans2.pop();
         }
+    }
+    if (valid_move==false && empty_stacks==false){
+	cout<< "Error: Invalid move, try again.\n\n";
     }
     if (has_moved){
         if (game.board[y_move][x_move]!=0){
@@ -304,7 +311,7 @@ bool checkmate(Board game, bool player_isBlack, bool &en_passant, int &px_cor, i
     return in_checkmate;
 }
 
-//New functions that check for castling on the left side of kings
+//checks if the king would be contested at any of the squares if moves through (left side of the king)
 bool castle_check_far(Board game, bool player_isBlack){
     bool can_castle=true;
     if (player_isBlack==true){
@@ -366,7 +373,7 @@ bool castle_check_far(Board game, bool player_isBlack){
     return can_castle;
 }
 
-//checks for castling on the right side of kings
+//checks if the king would be contested at any of the squares if moves through (right side of the king)
 bool castle_check_close(Board game, bool player_isBlack){
     bool can_castle=true;
     if (player_isBlack==true){
@@ -440,11 +447,14 @@ void sort_moves(int x_pos, int y_pos, Board game, stack<int> &xs, stack<int> &ys
         int x=xs.top();
         int y=ys.top();
         //runs to see if it moves to a place where it can get taken
-	//note that it doesn't pick up if it can move to where it can get taken by a pawn, so it will at least make some risky moves
+	Piece* temp1=game.board[y][x];
+	Piece* temp2=game.board[y_pos][x_pos];
+	game.board[y][x]=game.board[y_pos][x_pos];
+	game.board[y_pos][x_pos]=0;
         for(int y_pos2=0; y_pos2<8; y_pos2++){
             for(int x_pos2 = 0; x_pos2 < 8; x_pos2++){
                 if (game.board[y_pos2][x_pos2]!=0){
-                    if (game.board[y_pos2][x_pos2]->isBlack != true){
+                    if (game.board[y_pos2][x_pos2]->isBlack==false){
                         stack<int> can_xs;
                         stack<int> can_ys;
                         game.board[y_pos2][x_pos2]->generate_moves(game, x_pos2, y_pos2, can_xs, can_ys);
@@ -456,6 +466,7 @@ void sort_moves(int x_pos, int y_pos, Board game, stack<int> &xs, stack<int> &ys
                             can_xs.pop();
                             can_ys.pop();
                         }
+			
                     }
                 }
                 if (gets_taken==true){
@@ -466,13 +477,15 @@ void sort_moves(int x_pos, int y_pos, Board game, stack<int> &xs, stack<int> &ys
                 break;
             }
         }
+	game.board[y][x]=temp1;
+	game.board[y_pos][x_pos]=temp2;
         //runs to see if it can take anything
         if (game.board[y][x]!=0){
             can_take=true;
         }
         //See if it puts the king in check by moving it to that position
-        Piece* temp1=game.board[y][x];
-        Piece* temp2=game.board[y_pos][x_pos];
+        temp1=game.board[y][x];
+        temp2=game.board[y_pos][x_pos];
         game.board[y][x]=game.board[y_pos][x_pos];
         game.board[y_pos][x_pos]=0;
         can_take_king=check(game, false);
@@ -592,7 +605,7 @@ void AI_move(Board game, bool in_check, bool &en_passant, int &px_cor, int &py_c
     stack<string> check_get_taken;
     stack<string> put_them_in_check;
     stack<string> put_them_in_checkmate;
-    //sorts and generates all moves for all pieces
+    //sorts and generates all moves for all pieces (except en passant which os only used to get out of check)
     bool has_moved=false;
      	for(int y_pos=0; y_pos<8; y_pos++){
             for(int x_pos = 0; x_pos < 8; x_pos++){
@@ -875,7 +888,7 @@ void AI_move(Board game, bool in_check, bool &en_passant, int &px_cor, int &py_c
 }
 
 
-//The actual game
+//The actual game loop
 int main() {
     bool isBlack = false;
     Piece* pieces[6][2] =
@@ -905,7 +918,7 @@ int main() {
     bool en_passant=false;
     int px_cor=0;
     int py_cor=0;
-    //Runs the game until you choose to quit or checkmate occurs
+    //Here you choose if you want to play against an AI or another human
     bool AI;
     while (true) {
         cout<< "Would you like to play against the computer or another player?\n\t1) Player vs. Computer\n\t2) Player vs Player\n\nInput: ";
@@ -933,7 +946,8 @@ int main() {
     }
     cin.get();
     cin.clear();
-    cin.ignore(1024, '\n');
+    cin.ignore(1024, '\n'); 
+    //runs the game until you choose to quit or checkmate occurs
     while (!quit) {
         Game1.printBoard();
         bool hasMoved = false;
@@ -1094,14 +1108,15 @@ int main() {
                             }
                         }
                     }
-                    //is the actual move command so long as you choose not to castle
+                    //generates the moves and lets you pick where you want to move (should you choose not to castle)
 		    if (!hasMoved){
                     	hasMoved = move(Game1, x_cor, y_cor, blacksTurn, en_passant, px_cor, py_cor);
 		    }
                     if (!hasMoved) {
                         //system(CLEAR);
                         Game1.printBoard();
-                        cout<< "\nError: Invalid move, try again.\n\n";
+			//Moved to after they select a move that could be invalid
+                        //cout<< "\nError: Invalid move, try again.\n\n";
                         continue;
                     }
                 }
@@ -1179,7 +1194,7 @@ int main() {
                 }
             }
         }
-        //runs to see if you pute your oppenent in check
+        //runs to see if you put your oppenent in check
         bool in_check=check(Game1, !blacksTurn);
         if (in_check){
             bool in_check_mate=checkmate(Game1, !blacksTurn, en_passant, px_cor, py_cor);
@@ -1200,6 +1215,7 @@ int main() {
             Game1.printBoard();
             blacksTurn = !blacksTurn;
         }
+	//This is the loop the AI runs (it plays as Black)
         else {
             AI_move(Game1, in_check, en_passant, px_cor, py_cor);
             //Checks to see if any of the rooks or kings have moved
@@ -1266,7 +1282,7 @@ int main() {
                     }
                 }
             }
-            //runs to see if you put your oppenent in check
+            //runs to see if the AI put you in check
             bool in_check=check(Game1, false);
             if (in_check){
                 cout<<"King is in check \n";
