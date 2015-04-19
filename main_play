@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <unistd.h>
 #include "chess_board.h"
 #include "chess_pieces.h"
 
@@ -39,7 +40,7 @@ bool check(Board game, bool player_isBlack){
                     //Generate move is a void method that fills the two stacks with all moves of that piece in game at (j,i)
                     game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
                     while (!can_xs.empty() && !can_ys.empty()){
-						if (can_xs.top()==king_x && can_ys.top()==king_y){
+                        if (can_xs.top()==king_x && can_ys.top()==king_y){
                             in_check=true;
                             break;
                         }
@@ -67,136 +68,146 @@ bool move(Board game, int x_cor, int y_cor, bool blacksTurn, bool &en_passant, i
     stack<int> y_cans1;
     stack<int> x_cans2;
     stack<int> y_cans2;
-	//generates the en_passant if possible
-	if (game.board[y_cor][x_cor]->type.compare("pawn")==0){
-		if (en_passant){
-			if ((x_cor==px_cor-1)||(x_cor==px_cor+1)){
-				if (y_cor==py_cor){
-					if (blacksTurn){
-						x_cans1.push(px_cor);
-						y_cans1.push(py_cor+1);
-					}
-					else {
-						x_cans1.push(px_cor);
-						y_cans1.push(py_cor-1);
-					}
-				}
-			}
-		}
-	}
-	//generates all moves for the piece
+    //generates the en_passant if possible
+    if (game.board[y_cor][x_cor]->type.compare("pawn")==0) {
+        if (en_passant){
+            if ((x_cor==px_cor-1)||(x_cor==px_cor+1)){
+                if (y_cor==py_cor){
+                    if (blacksTurn){
+                        x_cans1.push(px_cor);
+                        y_cans1.push(py_cor+1);
+                    }
+                    else {
+                        x_cans1.push(px_cor);
+                        y_cans1.push(py_cor-1);
+                    }
+                }
+            }
+        }
+    }
+    //generates all moves for the piece
     game.board[y_cor][x_cor]->generate_moves(game, x_cor, y_cor, x_cans1, y_cans1);
     if (x_cans1.empty() || y_cans1.empty()) {
-        cout<< "Cannot move \n";
+        cout<< "Cannot move.\n";
     }
     else {
+        bool first = true;
+        cout<< "Moves: ";
         while (!x_cans1.empty() && !y_cans1.empty()) {
-            cout << "(" << x_cans1.top()+1 << ", " << 8 - y_cans1.top() << ") ; ";
+            if (!first) {
+                cout<< ", ";
+            }
+            cout << (char)(x_cans1.top()+97) << 8 - y_cans1.top();
             x_cans2.push(x_cans1.top());
             x_cans1.pop();
             y_cans2.push(y_cans1.top());
             y_cans1.pop();
+            first = false;
         }
     }
     cout<< "\n";
     //inputs where you would like to move
-    int x_move=0;
-    int y_move=0;
-	if (!x_cans2.empty() && !y_cans2.empty()){
-		cout<<"Please enter the (x, y) you would like to move to \n";
-		cin>>x_move;
-		cin>>y_move;
-	}
+    char x_move_char;
+    int x_move;
+    int y_move;
+    if (!x_cans2.empty() && !y_cans2.empty()){
+        cout<<"\nTo which space would you like to move?\n";
+        cin>> x_move_char;
+        cin>> y_move;
+        cin.clear();
+        cin.ignore(1024, '\n');
+        x_move = ((int)x_move_char)-96;
+    }
     x_move = x_move - 1;
     y_move = 8 - y_move;
-	//if you want to perform an en_passant which is in the stack it will run this
-	if (!x_cans2.empty() && !y_cans2.empty()){
-		if (en_passant){
-			if (game.board[y_cor][x_cor]->type.compare("pawn")==0){
-				if (x_move==px_cor && y_move==py_cor+1){
-					if (blacksTurn){
-						Piece* temp1=game.board[y_cor][x_cor];
-						Piece* temp2=game.board[py_cor][px_cor];
-						game.board[y_move][x_move]=game.board[y_cor][x_cor];
-						game.board[py_cor][px_cor]=0;
-						game.board[y_cor][x_cor]=0;
-						bool put_yourself_incheck = check(game, blacksTurn);
-						if (put_yourself_incheck==true){
-							cout<<"You can't move there, it puts you in check \n";
-							game.board[y_move][x_move]=0;
-							game.board[y_cor][x_cor]=temp1;
-							game.board[py_cor][px_cor]=temp2;
-						}
-						else {
-							has_moved=true;
-						}		
-					}
-				}
-				if (x_move==px_cor && y_move==py_cor-1){
-					if (!blacksTurn){
-						Piece* temp1=game.board[y_cor][x_cor];
-						Piece* temp2=game.board[py_cor][px_cor];
-						game.board[y_move][x_move]=game.board[y_cor][x_cor];
-						game.board[py_cor][px_cor]=0;
-						game.board[y_cor][x_cor]=0;
-						bool put_yourself_incheck = check(game, blacksTurn);
-						if (put_yourself_incheck==true){
-							cout<<"You can't move there, it puts you in check \n";
-							game.board[y_move][x_move]=0;
-							game.board[y_cor][x_cor]=temp1;
-							game.board[py_cor][px_cor]=temp2;
-						}
-						else {
-							has_moved=true;
-						}		
-					}
-				}
-			}
-		}
-	}
+    //if you want to perform an en_passant which is in the stack it will run this
+    if (!x_cans2.empty() && !y_cans2.empty()){
+        if (en_passant){
+            if (game.board[y_cor][x_cor]->type.compare("pawn")==0){
+                if (x_move==px_cor && y_move==py_cor+1){
+                    if (blacksTurn){
+                        Piece* temp1=game.board[y_cor][x_cor];
+                        Piece* temp2=game.board[py_cor][px_cor];
+                        game.board[y_move][x_move]=game.board[y_cor][x_cor];
+                        game.board[py_cor][px_cor]=0;
+                        game.board[y_cor][x_cor]=0;
+                        bool put_yourself_incheck = check(game, blacksTurn);
+                        if (put_yourself_incheck==true){
+                            cout<<"\nYou cannot move there, it puts you in check.\n";
+                            game.board[y_move][x_move]=0;
+                            game.board[y_cor][x_cor]=temp1;
+                            game.board[py_cor][px_cor]=temp2;
+                        }
+                        else {
+                            has_moved=true;
+                        }
+                    }
+                }
+                if (x_move==px_cor && y_move==py_cor-1){
+                    if (!blacksTurn){
+                        Piece* temp1=game.board[y_cor][x_cor];
+                        Piece* temp2=game.board[py_cor][px_cor];
+                        game.board[y_move][x_move]=game.board[y_cor][x_cor];
+                        game.board[py_cor][px_cor]=0;
+                        game.board[y_cor][x_cor]=0;
+                        bool put_yourself_incheck = check(game, blacksTurn);
+                        if (put_yourself_incheck==true){
+                            cout<<"\nYou cannot move there, it puts you in check.\n";
+                            game.board[y_move][x_move]=0;
+                            game.board[y_cor][x_cor]=temp1;
+                            game.board[py_cor][px_cor]=temp2;
+                        }
+                        else {
+                            has_moved=true;
+                        }
+                    }
+                }
+            }
+        }
+    }
     //checks to see if the move is on the generated move list
-	if (has_moved==false){
-		while (!x_cans2.empty() && !y_cans2.empty()){
-			if (x_move==x_cans2.top() && y_move==y_cans2.top()){
-				Piece* temp1=game.board[y_cor][x_cor];
-				Piece* temp2=game.board[y_move][x_move];
-				game.board[y_move][x_move]=game.board[y_cor][x_cor];
-				game.board[y_cor][x_cor]=0;
-				//Makes sure the move doesn't put you in check or else it moves you back
-				bool put_yourself_incheck = check(game, blacksTurn);
-				if (put_yourself_incheck==true){
-					cout<<"You can't move there, it puts you in check \n";
-					game.board[y_move][x_move]=temp2;
-					game.board[y_cor][x_cor]=temp1;
-					break;
-				}
-				else {
-					has_moved=true;
-					break;
-				}
-			}
-			x_cans2.pop();
-			y_cans2.pop();
-		}
-	}
-	if (has_moved){
-		if (game.board[y_move][x_move]!=0){
-			if (game.board[y_move][x_move]->type.compare("pawn")==0){
-				if (y_cor+2==y_move || y_cor-2==y_move){
-					en_passant=true;
-					px_cor=x_move;
-					py_cor=y_move;
-				}
-				else{
-					en_passant=false;
-				}
-			}
-			else{
-				en_passant=false;
-			}
-		}
-	}
-	return has_moved;
+    if (has_moved==false){
+        while (!x_cans2.empty() && !y_cans2.empty()){
+            if (x_move==x_cans2.top() && y_move==y_cans2.top()){
+                Piece* temp1=game.board[y_cor][x_cor];
+                Piece* temp2=game.board[y_move][x_move];
+                game.board[y_move][x_move]=game.board[y_cor][x_cor];
+                game.board[y_cor][x_cor]=0;
+                //Makes sure the move doesn't put you in check or else it moves you back
+                bool put_yourself_incheck = check(game, blacksTurn);
+                if (put_yourself_incheck==true){
+                    cout<<"\nYou cannot move there, it puts you in check.\n";
+                    game.board[y_move][x_move]=temp2;
+                    game.board[y_cor][x_cor]=temp1;
+                    break;
+                }
+                else {
+                    has_moved=true;
+                    break;
+                }
+            }
+            x_cans2.pop();
+            y_cans2.pop();
+        }
+    }
+    if (has_moved){
+        if (game.board[y_move][x_move]!=0){
+            if (game.board[y_move][x_move]->type.compare("pawn")==0){
+                if (y_cor+2==y_move || y_cor-2==y_move){
+                    en_passant=true;
+                    px_cor=x_move;
+                    py_cor=y_move;
+                }
+                else{
+                    en_passant=false;
+                }
+            }
+            else{
+                en_passant=false;
+            }
+        }
+    }
+    return has_moved;
 }
 
 //checkmoves without generate moves
@@ -205,64 +216,64 @@ bool checkmoves(Board game, int x_pos, int y_pos, bool player_isBlack, bool &en_
     bool can_block=false;
     stack<int> can_xs;
     stack<int> can_ys;
-	//if its a pawn pull a enpassant if possible
-	if (game.board[y_pos][x_pos]->type.compare("pawn")==0){
-		if (en_passant){
-			if ((x_pos==px_cor-1)||(x_pos==px_cor+1)){
-				if (y_pos==py_cor){
-					if (player_isBlack){
-						Piece* temp1=game.board[y_pos][x_pos];
-						Piece* temp2=game.board[py_cor][px_cor];
-						game.board[py_cor+1][px_cor]=game.board[y_pos][x_pos];
-						game.board[py_cor][px_cor]=0;
-						game.board[y_pos][x_pos]=0;
-						bool in_check = check(game, player_isBlack);
-						game.board[py_cor+1][px_cor]=0;
-						game.board[y_pos][x_pos]=temp1;
-						game.board[py_cor][px_cor]=temp2;
-						if (!in_check){
-							can_block=true;
-						}
-					}
-					else{
-						Piece* temp1=game.board[y_pos][x_pos];
-						Piece* temp2=game.board[py_cor][px_cor];
-						game.board[py_cor-1][px_cor]=game.board[y_pos][x_pos];
-						game.board[py_cor][px_cor]=0;
-						game.board[y_pos][x_pos]=0;
-						bool in_check = check(game, player_isBlack);
-						game.board[py_cor-1][px_cor]=0;
-						game.board[y_pos][x_pos]=temp1;
-						game.board[py_cor][px_cor]=temp2;
-						if (!in_check){
-							can_block=true;
-						}
-					}
-				}
-			}
-		}
-	}
-	//it can block any place
-	if (can_block==false){
-		game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
-		while (!can_xs.empty() && !can_ys.empty()){
-			int x_move=can_xs.top();
-			int y_move=can_ys.top();
-			Piece* temp1=game.board[y_pos][x_pos];
-			Piece* temp2=game.board[y_move][x_move];
-			game.board[y_move][x_move]=game.board[y_pos][x_pos];
-			game.board[y_pos][x_pos]=0;
-			bool in_check = check(game, player_isBlack);
-			game.board[y_move][x_move]=temp2;
-			game.board[y_pos][x_pos]=temp1;
-			if (!in_check){
-				can_block=true;
-				break;
-			}
-			can_xs.pop();
-			can_ys.pop();
-		}
-	}
+    //if its a pawn pull a enpassant if possible
+    if (game.board[y_pos][x_pos]->type.compare("pawn")==0){
+        if (en_passant){
+            if ((x_pos==px_cor-1)||(x_pos==px_cor+1)){
+                if (y_pos==py_cor){
+                    if (player_isBlack){
+                        Piece* temp1=game.board[y_pos][x_pos];
+                        Piece* temp2=game.board[py_cor][px_cor];
+                        game.board[py_cor+1][px_cor]=game.board[y_pos][x_pos];
+                        game.board[py_cor][px_cor]=0;
+                        game.board[y_pos][x_pos]=0;
+                        bool in_check = check(game, player_isBlack);
+                        game.board[py_cor+1][px_cor]=0;
+                        game.board[y_pos][x_pos]=temp1;
+                        game.board[py_cor][px_cor]=temp2;
+                        if (!in_check){
+                            can_block=true;
+                        }
+                    }
+                    else{
+                        Piece* temp1=game.board[y_pos][x_pos];
+                        Piece* temp2=game.board[py_cor][px_cor];
+                        game.board[py_cor-1][px_cor]=game.board[y_pos][x_pos];
+                        game.board[py_cor][px_cor]=0;
+                        game.board[y_pos][x_pos]=0;
+                        bool in_check = check(game, player_isBlack);
+                        game.board[py_cor-1][px_cor]=0;
+                        game.board[y_pos][x_pos]=temp1;
+                        game.board[py_cor][px_cor]=temp2;
+                        if (!in_check){
+                            can_block=true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    //it can block any place
+    if (can_block==false){
+        game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
+        while (!can_xs.empty() && !can_ys.empty()){
+            int x_move=can_xs.top();
+            int y_move=can_ys.top();
+            Piece* temp1=game.board[y_pos][x_pos];
+            Piece* temp2=game.board[y_move][x_move];
+            game.board[y_move][x_move]=game.board[y_pos][x_pos];
+            game.board[y_pos][x_pos]=0;
+            bool in_check = check(game, player_isBlack);
+            game.board[y_move][x_move]=temp2;
+            game.board[y_pos][x_pos]=temp1;
+            if (!in_check){
+                can_block=true;
+                break;
+            }
+            can_xs.pop();
+            can_ys.pop();
+        }
+    }
     return can_block;
 }
 
@@ -295,232 +306,232 @@ bool checkmate(Board game, bool player_isBlack, bool &en_passant, int &px_cor, i
 
 //New functions that check for castling on the left side of kings
 bool castle_check_far(Board game, bool player_isBlack){
-	bool can_castle=true;
-	if (player_isBlack==true){
-		bool in_check_there=false;
-		in_check_there=check(game, player_isBlack);
-		if (in_check_there==true){
-			can_castle=false;
-		}
-		if (in_check_there==false){
-			game.board[0][3]=game.board[0][4];
-			game.board[0][4]=0;
-			in_check_there=check(game, player_isBlack);
-			game.board[0][4]=game.board[0][3];
-			game.board[0][3]=0;
-			if (in_check_there==true){
-				can_castle=false;
-			}
-		}
-		if (in_check_there==false){
-			game.board[0][2]=game.board[0][4];
-			game.board[0][4]=0;
-			in_check_there=check(game, player_isBlack);
-			game.board[0][4]=game.board[0][2];
-			game.board[0][2]=0;
-			if (in_check_there==true){
-				can_castle=false;
-			}
-		}
-	}
-	else{
-		if (player_isBlack==true){
-			bool in_check_there=false;
-			in_check_there=check(game, player_isBlack);
-			if (in_check_there==true){
-				can_castle=false;
-			}
-			if (in_check_there==false){
-				game.board[7][3]=game.board[7][4];
-				game.board[7][4]=0;
-				in_check_there=check(game, player_isBlack);
-				game.board[7][4]=game.board[7][3];
-				game.board[7][3]=0;
-				if (in_check_there==true){
-					can_castle=false;
-				}
-			}
-			if (in_check_there==false){
-				game.board[7][2]=game.board[7][4];
-				game.board[7][4]=0;
-				in_check_there=check(game, player_isBlack);
-				game.board[7][4]=game.board[7][2];
-				game.board[7][2]=0;
-				if (in_check_there==true){
-					can_castle=false;
-				}
-			}
-		}
-	}
-	return can_castle;
+    bool can_castle=true;
+    if (player_isBlack==true){
+        bool in_check_there=false;
+        in_check_there=check(game, player_isBlack);
+        if (in_check_there==true){
+            can_castle=false;
+        }
+        if (in_check_there==false){
+            game.board[0][3]=game.board[0][4];
+            game.board[0][4]=0;
+            in_check_there=check(game, player_isBlack);
+            game.board[0][4]=game.board[0][3];
+            game.board[0][3]=0;
+            if (in_check_there==true){
+                can_castle=false;
+            }
+        }
+        if (in_check_there==false){
+            game.board[0][2]=game.board[0][4];
+            game.board[0][4]=0;
+            in_check_there=check(game, player_isBlack);
+            game.board[0][4]=game.board[0][2];
+            game.board[0][2]=0;
+            if (in_check_there==true){
+                can_castle=false;
+            }
+        }
+    }
+    else{
+        if (player_isBlack==true){
+            bool in_check_there=false;
+            in_check_there=check(game, player_isBlack);
+            if (in_check_there==true){
+                can_castle=false;
+            }
+            if (in_check_there==false){
+                game.board[7][3]=game.board[7][4];
+                game.board[7][4]=0;
+                in_check_there=check(game, player_isBlack);
+                game.board[7][4]=game.board[7][3];
+                game.board[7][3]=0;
+                if (in_check_there==true){
+                    can_castle=false;
+                }
+            }
+            if (in_check_there==false){
+                game.board[7][2]=game.board[7][4];
+                game.board[7][4]=0;
+                in_check_there=check(game, player_isBlack);
+                game.board[7][4]=game.board[7][2];
+                game.board[7][2]=0;
+                if (in_check_there==true){
+                    can_castle=false;
+                }
+            }
+        }
+    }
+    return can_castle;
 }
 
 //checks for castling on the right side of kings
 bool castle_check_close(Board game, bool player_isBlack){
-	bool can_castle=true;
-	if (player_isBlack==true){
-		bool in_check_there=false;
-		in_check_there=check(game, player_isBlack);
-		if (in_check_there==true){
-			can_castle=false;
-		}
-		if (in_check_there==false){
-			game.board[0][5]=game.board[0][4];
-			game.board[0][4]=0;
-			in_check_there=check(game, player_isBlack);
-			game.board[0][4]=game.board[0][5];
-			game.board[0][5]=0;
-			if (in_check_there==true){
-				can_castle=false;
-			}
-		}
-		if (in_check_there==false){
-			game.board[0][6]=game.board[0][4];
-			game.board[0][4]=0;
-			in_check_there=check(game, player_isBlack);
-			game.board[0][4]=game.board[0][6];
-			game.board[0][6]=0;
-			if (in_check_there==true){
-				can_castle=false;
-			}
-		}
-	}
-	else{
-		if (player_isBlack==true){
-			bool in_check_there=false;
-			in_check_there=check(game, player_isBlack);
-			if (in_check_there==true){
-				can_castle=false;
-			}
-			if (in_check_there==false){
-				game.board[7][5]=game.board[7][4];
-				game.board[7][4]=0;
-				in_check_there=check(game, player_isBlack);
-				game.board[7][4]=game.board[7][5];
-				game.board[7][5]=0;
-				if (in_check_there==true){
-					can_castle=false;
-				}
-			}
-			if (in_check_there==false){
-				game.board[7][6]=game.board[7][4];
-				game.board[7][4]=0;
-				in_check_there=check(game, player_isBlack);
-				game.board[7][4]=game.board[7][6];
-				game.board[7][6]=0;
-				if (in_check_there==true){
-					can_castle=false;
-				}
-			}
-		}
-	}
-	return can_castle;
+    bool can_castle=true;
+    if (player_isBlack==true){
+        bool in_check_there=false;
+        in_check_there=check(game, player_isBlack);
+        if (in_check_there==true){
+            can_castle=false;
+        }
+        if (in_check_there==false){
+            game.board[0][5]=game.board[0][4];
+            game.board[0][4]=0;
+            in_check_there=check(game, player_isBlack);
+            game.board[0][4]=game.board[0][5];
+            game.board[0][5]=0;
+            if (in_check_there==true){
+                can_castle=false;
+            }
+        }
+        if (in_check_there==false){
+            game.board[0][6]=game.board[0][4];
+            game.board[0][4]=0;
+            in_check_there=check(game, player_isBlack);
+            game.board[0][4]=game.board[0][6];
+            game.board[0][6]=0;
+            if (in_check_there==true){
+                can_castle=false;
+            }
+        }
+    }
+    else{
+        if (player_isBlack==true){
+            bool in_check_there=false;
+            in_check_there=check(game, player_isBlack);
+            if (in_check_there==true){
+                can_castle=false;
+            }
+            if (in_check_there==false){
+                game.board[7][5]=game.board[7][4];
+                game.board[7][4]=0;
+                in_check_there=check(game, player_isBlack);
+                game.board[7][4]=game.board[7][5];
+                game.board[7][5]=0;
+                if (in_check_there==true){
+                    can_castle=false;
+                }
+            }
+            if (in_check_there==false){
+                game.board[7][6]=game.board[7][4];
+                game.board[7][4]=0;
+                in_check_there=check(game, player_isBlack);
+                game.board[7][4]=game.board[7][6];
+                game.board[7][6]=0;
+                if (in_check_there==true){
+                    can_castle=false;
+                }
+            }
+        }
+    }
+    return can_castle;
 }
 
 //This is the sorting algorithm which determines the tier level of each move for each piece
-void sort_moves(int x_pos, int y_pos, Board game, stack<int> &xs, stack<int> &ys, stack<string> &move_get_taken, stack<string> &move, 
-stack<string> &move_can_take_get_taken, stack<string> &move_can_take, stack<string> &check_get_taken, stack<string> &put_them_in_check){
-	while (!xs.empty() && !ys.empty()){
-		bool can_take=false;
-		bool gets_taken=false;
-		bool can_take_king=false;
-		int x=xs.top();
-		int y=ys.top();
-		//runs to see if it moves to a place where it can get taken
-		for(int y_pos2=0; y_pos2<8; y_pos2++){
-			for(int x_pos2 = 0; x_pos2 < 8; x_pos2++){
-				if (game.board[y_pos2][x_pos2]!=0){
-					if (game.board[y_pos2][x_pos2]->isBlack != true){
-						stack<int> can_xs;
-						stack<int> can_ys;
-						game.board[y_pos2][x_pos2]->generate_moves(game, x_pos2, y_pos2, can_xs, can_ys);
-						while (!can_xs.empty() && !can_ys.empty()){
-							if ((can_xs.top()==x && can_ys.top()==y)){
-								gets_taken=true;
-								break;
-							}
-							can_xs.pop();
-							can_ys.pop();
-						}
-					}
-				}
-				if (gets_taken==true){
-					break;
-				}
-			}
-			if (gets_taken==true){
-				break;
-			}
-		}
-		//runs to see if it can take anything
-		if (game.board[y][x]!=0){
-			can_take=true;
-		}
-		//See if it puts the king in check by moving it to that position
-		Piece* temp1=game.board[y][x];
-		Piece* temp2=game.board[y_pos][x_pos];
-		game.board[y][x]=game.board[y_pos][x_pos];
-		game.board[y_pos][x_pos]=0;
-		can_take_king=check(game, false);
-		game.board[y][x]=temp1;
-		game.board[y_pos][x_pos]=temp2;
-		//Builds the string for position in (x_pos,y_pos,x,y) format
-		stringstream format;
-		format<<x_pos<<y_pos<<x<<y;
-		string formatted=format.str();
-		if (!can_take && !gets_taken && !can_take_king){
-			move.push(formatted);
-		}
-		if (!can_take && gets_taken && !can_take_king){
-			move_get_taken.push(formatted);
-		}
-		if (can_take && gets_taken && !can_take_king){
-			move_can_take_get_taken.push(formatted);
-		}
-		if (can_take && !gets_taken && !can_take_king){
-			move_can_take.push(formatted);
-		}
-		if (gets_taken && can_take_king){
-			check_get_taken.push(formatted);
-		}
-		if (!gets_taken && can_take_king){
-			put_them_in_check.push(formatted);
-		}
-		xs.pop();
-		ys.pop();
-	}
+void sort_moves(int x_pos, int y_pos, Board game, stack<int> &xs, stack<int> &ys, stack<string> &move_get_taken, stack<string> &move,
+                stack<string> &move_can_take_get_taken, stack<string> &move_can_take, stack<string> &check_get_taken, stack<string> &put_them_in_check){
+    while (!xs.empty() && !ys.empty()){
+        bool can_take=false;
+        bool gets_taken=false;
+        bool can_take_king=false;
+        int x=xs.top();
+        int y=ys.top();
+        //runs to see if it moves to a place where it can get taken
+        for(int y_pos2=0; y_pos2<8; y_pos2++){
+            for(int x_pos2 = 0; x_pos2 < 8; x_pos2++){
+                if (game.board[y_pos2][x_pos2]!=0){
+                    if (game.board[y_pos2][x_pos2]->isBlack != true){
+                        stack<int> can_xs;
+                        stack<int> can_ys;
+                        game.board[y_pos2][x_pos2]->generate_moves(game, x_pos2, y_pos2, can_xs, can_ys);
+                        while (!can_xs.empty() && !can_ys.empty()){
+                            if ((can_xs.top()==x && can_ys.top()==y)){
+                                gets_taken=true;
+                                break;
+                            }
+                            can_xs.pop();
+                            can_ys.pop();
+                        }
+                    }
+                }
+                if (gets_taken==true){
+                    break;
+                }
+            }
+            if (gets_taken==true){
+                break;
+            }
+        }
+        //runs to see if it can take anything
+        if (game.board[y][x]!=0){
+            can_take=true;
+        }
+        //See if it puts the king in check by moving it to that position
+        Piece* temp1=game.board[y][x];
+        Piece* temp2=game.board[y_pos][x_pos];
+        game.board[y][x]=game.board[y_pos][x_pos];
+        game.board[y_pos][x_pos]=0;
+        can_take_king=check(game, false);
+        game.board[y][x]=temp1;
+        game.board[y_pos][x_pos]=temp2;
+        //Builds the string for position in (x_pos,y_pos,x,y) format
+        stringstream format;
+        format<<x_pos<<y_pos<<x<<y;
+        string formatted=format.str();
+        if (!can_take && !gets_taken && !can_take_king){
+            move.push(formatted);
+        }
+        if (!can_take && gets_taken && !can_take_king){
+            move_get_taken.push(formatted);
+        }
+        if (can_take && gets_taken && !can_take_king){
+            move_can_take_get_taken.push(formatted);
+        }
+        if (can_take && !gets_taken && !can_take_king){
+            move_can_take.push(formatted);
+        }
+        if (gets_taken && can_take_king){
+            check_get_taken.push(formatted);
+        }
+        if (!gets_taken && can_take_king){
+            put_them_in_check.push(formatted);
+        }
+        xs.pop();
+        ys.pop();
+    }
 }
 
 //This is the try moves function which the AI uses to get out of check
 bool try_move(Board game, int x_pos, int y_pos, bool player_isBlack, bool &en_passant, int &px_cor, int &py_cor){
     bool blocked=false;
-	//if its a pawn pull a enpassant if possible
-	if (game.board[y_pos][x_pos]->type.compare("pawn")==0){
-		if (en_passant){
-			if ((x_pos==px_cor-1)||(x_pos==px_cor+1)){
-				if (y_pos==py_cor){
-					//only runs black because AI is only black
-					if (player_isBlack){
-						Piece* temp1=game.board[y_pos][x_pos];
-						Piece* temp2=game.board[py_cor][px_cor];
-						game.board[py_cor+1][px_cor]=game.board[y_pos][x_pos];
-						game.board[py_cor][px_cor]=0;
-						game.board[y_pos][x_pos]=0;
-						bool in_check = check(game, player_isBlack);
-						if (!in_check){
-							blocked=true;
-							en_passant=false;
-						}
-						else {
-							game.board[py_cor+1][px_cor]=0;
-							game.board[y_pos][x_pos]=temp1;
-							game.board[py_cor][px_cor]=temp2;
-						}
-					}
-				}
-			}
-		}
-	}
+    //if its a pawn pull a enpassant if possible
+    if (game.board[y_pos][x_pos]->type.compare("pawn")==0){
+        if (en_passant){
+            if ((x_pos==px_cor-1)||(x_pos==px_cor+1)){
+                if (y_pos==py_cor){
+                    //only runs black because AI is only black
+                    if (player_isBlack){
+                        Piece* temp1=game.board[y_pos][x_pos];
+                        Piece* temp2=game.board[py_cor][px_cor];
+                        game.board[py_cor+1][px_cor]=game.board[y_pos][x_pos];
+                        game.board[py_cor][px_cor]=0;
+                        game.board[y_pos][x_pos]=0;
+                        bool in_check = check(game, player_isBlack);
+                        if (!in_check){
+                            blocked=true;
+                            en_passant=false;
+                        }
+                        else {
+                            game.board[py_cor+1][px_cor]=0;
+                            game.board[y_pos][x_pos]=temp1;
+                            game.board[py_cor][px_cor]=temp2;
+                        }
+                    }
+                }
+            }
+        }
+    }
     stack<int> can_xs;
     stack<int> can_ys;
     game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
@@ -534,25 +545,25 @@ bool try_move(Board game, int x_pos, int y_pos, bool player_isBlack, bool &en_pa
         bool in_check = check(game, player_isBlack);
         if (in_check==false){
             blocked=true;
-			if (game.board[y_move][x_move]->type.compare("pawn")==0){
-				if (y_pos+2==y_move || y_pos-2==y_move){
-					en_passant=true;
-					px_cor=x_move;
-					py_cor=y_move;
-				}
-				else{
-					en_passant=false;
-				}
-			}
-			else{
-				en_passant=false;
-			}
+            if (game.board[y_move][x_move]->type.compare("pawn")==0){
+                if (y_pos+2==y_move || y_pos-2==y_move){
+                    en_passant=true;
+                    px_cor=x_move;
+                    py_cor=y_move;
+                }
+                else{
+                    en_passant=false;
+                }
+            }
+            else{
+                en_passant=false;
+            }
             break;
         }
-		else {
-			game.board[y_move][x_move]=temp2;
-			game.board[y_pos][x_pos]=temp1;
-		}
+        else {
+            game.board[y_move][x_move]=temp2;
+            game.board[y_pos][x_pos]=temp1;
+        }
         can_xs.pop();
         can_ys.pop();
     }
@@ -563,243 +574,243 @@ bool try_move(Board game, int x_pos, int y_pos, bool player_isBlack, bool &en_pa
 //Basic chess AI move
 //AI plays as the black pieces
 void AI_move(Board game, bool in_check, bool &en_passant, int &px_cor, int &py_cor){
-	stack<int> xs;
-	stack<int> ys;
-	stack<string> move_get_taken;
-	stack<string> move;
-	stack<string> move_can_take_get_taken;
-	stack<string> move_can_take;
-	stack<string> check_get_taken;
-	stack<string> put_them_in_check;	
-	if (in_check==false){
-	//sorts and generates all moves for all pieces
-	bool has_moved=false;
-	for(int y_pos=0; y_pos<8; y_pos++){
-		for(int x_pos = 0; x_pos < 8; x_pos++){
-			if (game.board[y_pos][x_pos]!=0){
-				if (game.board[y_pos][x_pos]->isBlack == true){
-					game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, xs, ys);
-					sort_moves(x_pos, y_pos, game ,xs , ys, move_get_taken, move, move_can_take_get_taken, move_can_take, check_get_taken, put_them_in_check);
-				}
-			}
-		}
-	}
-	//picks the first move in the most optimal one as long as it doesn't put you in check and keeps going down
-	while(!put_them_in_check.empty() && !has_moved){
-		string info=put_them_in_check.top();
-		int x_pos=info.at(0)-'0';
-		int y_pos=info.at(1)-'0';
-		int x=info.at(2)-'0';
-		int y=info.at(3)-'0';
-		Piece* temp1=game.board[y][x];
-		Piece* temp2=game.board[y_pos][x_pos];
-		game.board[y][x]=game.board[y_pos][x_pos];
-		game.board[y_pos][x_pos]=0;
-		if (check(game, true)==true){
-			game.board[y][x]=temp1;
-			game.board[y_pos][x_pos]=temp2;
-		}
-		else {
-			has_moved=true;
-			if (game.board[y][x]->type.compare("pawn")==0){
-				if (y_pos+2==y || y_pos-2==y){
-					en_passant=true;
-					px_cor=x;
-					py_cor=y;
-				}
-				else{
-					en_passant=false;
-				}
-			}
-			else{
-				en_passant=false;
-			}
-		}
-		put_them_in_check.pop();
-	}
-	while(!check_get_taken.empty() && !has_moved){
-		string info=check_get_taken.top();
-		int x_pos=info.at(0)-'0';
-		int y_pos=info.at(1)-'0';
-		int x=info.at(2)-'0';
-		int y=info.at(3)-'0';
-		Piece* temp1=game.board[y][x];
-		Piece* temp2=game.board[y_pos][x_pos];
-		game.board[y][x]=game.board[y_pos][x_pos];
-		game.board[y_pos][x_pos]=0;
-		if (check(game, true)==true){
-			game.board[y][x]=temp1;
-			game.board[y_pos][x_pos]=temp2;
-		}
-		else {
-			has_moved=true;
-			if (game.board[y][x]->type.compare("pawn")==0){
-				if (y_pos+2==y || y_pos-2==y){
-					en_passant=true;
-					px_cor=x;
-					py_cor=y;
-				}
-				else{
-					en_passant=false;
-				}
-			}
-			else{
-				en_passant=false;
-			}
-		}
-		check_get_taken.pop();
-	}
-	while(!move_can_take.empty() && !has_moved){
-		string info=move_can_take.top();
-		int x_pos=info.at(0)-'0';
-		int y_pos=info.at(1)-'0';
-		int x=info.at(2)-'0';
-		int y=info.at(3)-'0';
-		Piece* temp1=game.board[y][x];
-		Piece* temp2=game.board[y_pos][x_pos];
-		game.board[y][x]=game.board[y_pos][x_pos];
-		game.board[y_pos][x_pos]=0;
-		if (check(game, true)==true){
-			game.board[y][x]=temp1;
-			game.board[y_pos][x_pos]=temp2;
-		}
-		else {
-			has_moved=true;
-			if (game.board[y][x]->type.compare("pawn")==0){
-				if (y_pos+2==y || y_pos-2==y){
-					en_passant=true;
-					px_cor=x;
-					py_cor=y;
-				}
-				else{
-					en_passant=false;
-				}
-			}
-			else{
-				en_passant=false;
-			}
-		}
-		move_can_take.pop();
-	}
-	while(!move_can_take_get_taken.empty() && !has_moved){
-		string info=move_can_take_get_taken.top();
-		int x_pos=info.at(0)-'0';
-		int y_pos=info.at(1)-'0';
-		int x=info.at(2)-'0';
-		int y=info.at(3)-'0';
-		Piece* temp1=game.board[y][x];
-		Piece* temp2=game.board[y_pos][x_pos];
-		game.board[y][x]=game.board[y_pos][x_pos];
-		game.board[y_pos][x_pos]=0;
-		if (check(game, true)==true){
-			game.board[y][x]=temp1;
-			game.board[y_pos][x_pos]=temp2;
-		}
-		else {
-			has_moved=true;
-			if (game.board[y][x]->type.compare("pawn")==0){
-				if (y_pos+2==y || y_pos-2==y){
-					en_passant=true;
-					px_cor=x;
-					py_cor=y;
-				}
-				else{
-					en_passant=false;
-				}
-			}
-			else{
-				en_passant=false;
-			}
-		}
-		move_can_take_get_taken.pop();
-	}
-	while(!move.empty() && !has_moved){
-		string info=move.top();
-		int x_pos=info.at(0)-'0';
-		int y_pos=info.at(1)-'0';
-		int x=info.at(2)-'0';
-		int y=info.at(3)-'0';
-		Piece* temp1=game.board[y][x];
-		Piece* temp2=game.board[y_pos][x_pos];
-		game.board[y][x]=game.board[y_pos][x_pos];
-		game.board[y_pos][x_pos]=0;
-		if (check(game, true)==true){
-			game.board[y][x]=temp1;
-			game.board[y_pos][x_pos]=temp2;
-		}
-		else {
-			has_moved=true;
-			if (game.board[y][x]->type.compare("pawn")==0){
-				if (y_pos+2==y || y_pos-2==y){
-					en_passant=true;
-					px_cor=x;
-					py_cor=y;
-				}
-				else{
-					en_passant=false;
-				}
-			}
-			else{
-				en_passant=false;
-			}
-		}
-		move.pop();
-	}
-	while(!move_get_taken.empty() && !has_moved){
-		string info=move_get_taken.top();
-		int x_pos=info.at(0)-'0';
-		int y_pos=info.at(1)-'0';
-		int x=info.at(2)-'0';
-		int y=info.at(3)-'0';
-		Piece* temp1=game.board[y][x];
-		Piece* temp2=game.board[y_pos][x_pos];
-		game.board[y][x]=game.board[y_pos][x_pos];
-		game.board[y_pos][x_pos]=0;
-		if (check(game, true)==true){
-			game.board[y][x]=temp1;
-			game.board[y_pos][x_pos]=temp2;
-		}
-		else {
-			has_moved=true;
-			if (game.board[y][x]->type.compare("pawn")==0){
-				if (y_pos+2==y || y_pos-2==y){
-					en_passant=true;
-					px_cor=x;
-					py_cor=y;
-				}
-				else{
-					en_passant=false;
-				}
-			}
-			else{
-				en_passant=false;
-			}
-		}
-		move_get_taken.pop();
-	}
-}
-//makes the first move to get you out of check through a restyled version of checkmate
-if (in_check){
-	bool has_moved=false;
-    for(int y_pos=0; y_pos<8; y_pos++){
-        for(int x_pos = 0; x_pos < 8; x_pos++){
-            if (game.board[y_pos][x_pos]!=0){
-                if (game.board[y_pos][x_pos]->isBlack==true){
-                    bool blocked=try_move(game, x_pos, y_pos, true, en_passant, px_cor, py_cor);
-                    if (blocked){
-                        has_moved=true;
+    stack<int> xs;
+    stack<int> ys;
+    stack<string> move_get_taken;
+    stack<string> move;
+    stack<string> move_can_take_get_taken;
+    stack<string> move_can_take;
+    stack<string> check_get_taken;
+    stack<string> put_them_in_check;
+    if (in_check==false){
+        //sorts and generates all moves for all pieces
+        bool has_moved=false;
+        for(int y_pos=0; y_pos<8; y_pos++){
+            for(int x_pos = 0; x_pos < 8; x_pos++){
+                if (game.board[y_pos][x_pos]!=0){
+                    if (game.board[y_pos][x_pos]->isBlack == true){
+                        game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, xs, ys);
+                        sort_moves(x_pos, y_pos, game ,xs , ys, move_get_taken, move, move_can_take_get_taken, move_can_take, check_get_taken, put_them_in_check);
                     }
+                }
+            }
+        }
+        //picks the first move in the most optimal one as long as it doesn't put you in check and keeps going down
+        while(!put_them_in_check.empty() && !has_moved){
+            string info=put_them_in_check.top();
+            int x_pos=info.at(0)-'0';
+            int y_pos=info.at(1)-'0';
+            int x=info.at(2)-'0';
+            int y=info.at(3)-'0';
+            Piece* temp1=game.board[y][x];
+            Piece* temp2=game.board[y_pos][x_pos];
+            game.board[y][x]=game.board[y_pos][x_pos];
+            game.board[y_pos][x_pos]=0;
+            if (check(game, true)==true){
+                game.board[y][x]=temp1;
+                game.board[y_pos][x_pos]=temp2;
+            }
+            else {
+                has_moved=true;
+                if (game.board[y][x]->type.compare("pawn")==0){
+                    if (y_pos+2==y || y_pos-2==y){
+                        en_passant=true;
+                        px_cor=x;
+                        py_cor=y;
+                    }
+                    else{
+                        en_passant=false;
+                    }
+                }
+                else{
+                    en_passant=false;
+                }
+            }
+            put_them_in_check.pop();
+        }
+        while(!check_get_taken.empty() && !has_moved){
+            string info=check_get_taken.top();
+            int x_pos=info.at(0)-'0';
+            int y_pos=info.at(1)-'0';
+            int x=info.at(2)-'0';
+            int y=info.at(3)-'0';
+            Piece* temp1=game.board[y][x];
+            Piece* temp2=game.board[y_pos][x_pos];
+            game.board[y][x]=game.board[y_pos][x_pos];
+            game.board[y_pos][x_pos]=0;
+            if (check(game, true)==true){
+                game.board[y][x]=temp1;
+                game.board[y_pos][x_pos]=temp2;
+            }
+            else {
+                has_moved=true;
+                if (game.board[y][x]->type.compare("pawn")==0){
+                    if (y_pos+2==y || y_pos-2==y){
+                        en_passant=true;
+                        px_cor=x;
+                        py_cor=y;
+                    }
+                    else{
+                        en_passant=false;
+                    }
+                }
+                else{
+                    en_passant=false;
+                }
+            }
+            check_get_taken.pop();
+        }
+        while(!move_can_take.empty() && !has_moved){
+            string info=move_can_take.top();
+            int x_pos=info.at(0)-'0';
+            int y_pos=info.at(1)-'0';
+            int x=info.at(2)-'0';
+            int y=info.at(3)-'0';
+            Piece* temp1=game.board[y][x];
+            Piece* temp2=game.board[y_pos][x_pos];
+            game.board[y][x]=game.board[y_pos][x_pos];
+            game.board[y_pos][x_pos]=0;
+            if (check(game, true)==true){
+                game.board[y][x]=temp1;
+                game.board[y_pos][x_pos]=temp2;
+            }
+            else {
+                has_moved=true;
+                if (game.board[y][x]->type.compare("pawn")==0){
+                    if (y_pos+2==y || y_pos-2==y){
+                        en_passant=true;
+                        px_cor=x;
+                        py_cor=y;
+                    }
+                    else{
+                        en_passant=false;
+                    }
+                }
+                else{
+                    en_passant=false;
+                }
+            }
+            move_can_take.pop();
+        }
+        while(!move_can_take_get_taken.empty() && !has_moved){
+            string info=move_can_take_get_taken.top();
+            int x_pos=info.at(0)-'0';
+            int y_pos=info.at(1)-'0';
+            int x=info.at(2)-'0';
+            int y=info.at(3)-'0';
+            Piece* temp1=game.board[y][x];
+            Piece* temp2=game.board[y_pos][x_pos];
+            game.board[y][x]=game.board[y_pos][x_pos];
+            game.board[y_pos][x_pos]=0;
+            if (check(game, true)==true){
+                game.board[y][x]=temp1;
+                game.board[y_pos][x_pos]=temp2;
+            }
+            else {
+                has_moved=true;
+                if (game.board[y][x]->type.compare("pawn")==0){
+                    if (y_pos+2==y || y_pos-2==y){
+                        en_passant=true;
+                        px_cor=x;
+                        py_cor=y;
+                    }
+                    else{
+                        en_passant=false;
+                    }
+                }
+                else{
+                    en_passant=false;
+                }
+            }
+            move_can_take_get_taken.pop();
+        }
+        while(!move.empty() && !has_moved){
+            string info=move.top();
+            int x_pos=info.at(0)-'0';
+            int y_pos=info.at(1)-'0';
+            int x=info.at(2)-'0';
+            int y=info.at(3)-'0';
+            Piece* temp1=game.board[y][x];
+            Piece* temp2=game.board[y_pos][x_pos];
+            game.board[y][x]=game.board[y_pos][x_pos];
+            game.board[y_pos][x_pos]=0;
+            if (check(game, true)==true){
+                game.board[y][x]=temp1;
+                game.board[y_pos][x_pos]=temp2;
+            }
+            else {
+                has_moved=true;
+                if (game.board[y][x]->type.compare("pawn")==0){
+                    if (y_pos+2==y || y_pos-2==y){
+                        en_passant=true;
+                        px_cor=x;
+                        py_cor=y;
+                    }
+                    else{
+                        en_passant=false;
+                    }
+                }
+                else{
+                    en_passant=false;
+                }
+            }
+            move.pop();
+        }
+        while(!move_get_taken.empty() && !has_moved){
+            string info=move_get_taken.top();
+            int x_pos=info.at(0)-'0';
+            int y_pos=info.at(1)-'0';
+            int x=info.at(2)-'0';
+            int y=info.at(3)-'0';
+            Piece* temp1=game.board[y][x];
+            Piece* temp2=game.board[y_pos][x_pos];
+            game.board[y][x]=game.board[y_pos][x_pos];
+            game.board[y_pos][x_pos]=0;
+            if (check(game, true)==true){
+                game.board[y][x]=temp1;
+                game.board[y_pos][x_pos]=temp2;
+            }
+            else {
+                has_moved=true;
+                if (game.board[y][x]->type.compare("pawn")==0){
+                    if (y_pos+2==y || y_pos-2==y){
+                        en_passant=true;
+                        px_cor=x;
+                        py_cor=y;
+                    }
+                    else{
+                        en_passant=false;
+                    }
+                }
+                else{
+                    en_passant=false;
+                }
+            }
+            move_get_taken.pop();
+        }
+    }
+    //makes the first move to get you out of check through a restyled version of checkmate
+    if (in_check){
+        bool has_moved=false;
+        for(int y_pos=0; y_pos<8; y_pos++){
+            for(int x_pos = 0; x_pos < 8; x_pos++){
+                if (game.board[y_pos][x_pos]!=0){
+                    if (game.board[y_pos][x_pos]->isBlack==true){
+                        bool blocked=try_move(game, x_pos, y_pos, true, en_passant, px_cor, py_cor);
+                        if (blocked){
+                            has_moved=true;
+                        }
+                    }
+                }
+                if (has_moved==true){
+                    break;
                 }
             }
             if (has_moved==true){
                 break;
             }
         }
-        if (has_moved==true){
-            break;
-        }
     }
-}
 }
 
 
@@ -807,60 +818,108 @@ if (in_check){
 int main() {
     bool isBlack = false;
     Piece* pieces[6][2] =
-        {
+    {
         {new Pawn(!isBlack),    new Pawn(isBlack)},
         {new King(!isBlack),    new King(isBlack)},
         {new Queen(!isBlack),   new Queen(isBlack)},
         {new Bishop(!isBlack),  new Bishop(isBlack)},
         {new Knight(!isBlack),  new Knight(isBlack)},
         {new Rook(!isBlack),    new Rook(isBlack)}
-        };
+    };
     Board Game1(1, pieces);
+    cout<< "Welcome to the best game of chess you will ever play in your life... ever!\n";
+    cout<< "__________________________________________________________________________\n\n\n";
+    cout<< "Press enter to start the game!\n";
+    cin.ignore(1024, '\n');
     Game1.printBoard();
     bool quit = false;
     bool blacksTurn = false;
-	//Sets up that none of the rooks or kings have moved and no en_passant
-	bool cb_far_not=true;
-	bool cb_close_not=true;
-	bool cw_far_not=true;
-	bool cw_close_not=true;
-	bool kb_not=true;
-	bool kw_not=true;
-	bool en_passant=false;
-	int px_cor=0;
-	int py_cor=0;
-	//runs the game until you choose to quit or checkmate occurs
-	bool AI;
-	cout<<"One for AI anything else for two people \n";
-	string AI_maybe;
-	cin>>AI_maybe;
-	if (AI_maybe.compare("1")==0){
-		AI=true;
-		cout<<"Ai selected \n";
-	}
-    while (!quit) {
-        bool hasMoved = false;
-        if (blacksTurn) {
-            cout << "Black's turn, press enter to continue.\n";
-        }
-        else {
-            cout << "White's turn, press enter to continue.\n";
-        }
-        cin.ignore();
-        cout<< "Choose an option:\n\t1 = Move\n\t2 = Quit\n";
-        string choice;
-        cin >> choice;
-        if (choice.compare("2")==0) {
+    //Sets up that none of the rooks or kings have moved and no en_passant
+    bool cb_far_not=true;
+    bool cb_close_not=true;
+    bool cw_far_not=true;
+    bool cw_close_not=true;
+    bool kb_not=true;
+    bool kw_not=true;
+    bool en_passant=false;
+    int px_cor=0;
+    int py_cor=0;
+    //Runs the game until you choose to quit or checkmate occurs
+    bool AI;
+    while (true) {
+        cout<< "Would you like to play against the computer or another player?\n\t1) Player vs. Computer\n\t2) Player vs Player\n\nInput: ";
+        string AI_maybe;
+        cin>> AI_maybe;
+        cin.clear();
+        if (AI_maybe.compare("1")==0){
+            cout<< "\nPlayer vs Computer selected, waking up AI...";
+            for (int s=0; s<3; s++) {
+                cout << "\n...";
+                usleep(500000);
+            }
+            cout<< "\n\nPress enter to begin!\n";
+            AI = true;
             break;
         }
-        while (!hasMoved) {
-            int x_cor;
-            int y_cor;
-            cout<< "Where is the piece that you want to move (x,y)?\n";
-            cin>> x_cor;
+        else if (AI_maybe.compare("2")==0) {
+            cout<< "\nPlayer vs Player selected, Press enter to begin!\n";
+            AI = false;
+            break;
+        }
+        else {
+            cout<< "\nInvalid input, try again.\n\n";
+        }
+    }
+    cin.get();
+    cin.clear();
+    cin.ignore(1024, '\n');
+    while (!quit) {
+        Game1.printBoard();
+        bool hasMoved = false;
+        while (true) {
+            if (blacksTurn) {
+                cout << "\nBlack's turn:\n\n";
+            }
+            else {
+                cout << "\nWhite's turn:\n";
+            }
+            cout<< "Choose an option:\n\t1 = Move\n\t2 = Quit\nInput: ";
+            string choice;
+            cin >> choice;
+            cin.clear();
+            cin.ignore(1024, '\n');
+            if (choice.compare("1")==0) {
+                break;
+            }
+            else if (choice.compare("2")==0) {
+                quit = true;
+                if (blacksTurn) {
+                    cout << "\n\n\n\nBlack Quit. ";
+                }
+                else {
+                    cout << "\n\n\n\nWhite Quit. ";
+                }
+                break;
+            }
+            else {
+                cout<< "\nInvalid input, try again.\n";
+                continue;
+            }
+        }
+        while (!hasMoved && !quit) {
+            char x_cor_char = ' ';
+            int x_cor = 0;
+            int y_cor = 0;
+            cout<< "\nWhere is the piece that you want to move? Example: a5\nInput: ";
+            cin>> x_cor_char;
             cin>> y_cor;
+            cin.clear();
+            cin.ignore(1024, '\n');
+            x_cor = ((int)x_cor_char)-96;
             if (x_cor<1 || x_cor>8 || y_cor<1 || y_cor>8) {
-                cout<< "Error: Invalid Space, try again.\n";
+                //system(CLEAR);
+                Game1.printBoard();
+                cout<< "\nError: Invalid input, try again.\n\n";
                 continue;
             }
             x_cor = x_cor - 1;
@@ -868,259 +927,303 @@ int main() {
             if (Game1.board[y_cor][x_cor]!=0){
                 if (Game1.board[y_cor][x_cor]->isBlack==blacksTurn) {
                     cout<< "\nYou selected a " << Game1.board[y_cor][x_cor]->type<<"\n";
-					//Runs to see if you can castle
-					bool can_castle_far=false;
-					bool can_castle_close=false;
-					if (Game1.board[y_cor][x_cor]->type.compare("rook")==0 || Game1.board[y_cor][x_cor]->type.compare("king")==0){
-						if (kb_not){
-							if (blacksTurn==true) {
-								if (cb_far_not){
-									if (Game1.board[0][1]==0 && Game1.board[0][2]==0 && Game1.board[0][3]==0){
-										can_castle_far=castle_check_far(Game1,blacksTurn);
-									}
-								}
-								if (cb_close_not){
-									if (Game1.board[0][5]==0 && Game1.board[0][6]==0){
-										can_castle_close=castle_check_close(Game1,blacksTurn);
-									}
-								}
-							}
-						}
-						if (kw_not){
-							if (blacksTurn==false){
-								if (cw_far_not){
-									if (Game1.board[7][1]==0 && Game1.board[7][2]==0 && Game1.board[7][3]==0){
-										can_castle_far=castle_check_far(Game1,blacksTurn);
-									}
-								}
-								if (cw_close_not){
-									if (Game1.board[7][5]==0 && Game1.board[7][6]==0){
-										can_castle_close=castle_check_close(Game1,blacksTurn);
-									}
-								}
-							}
-						}
-						if (can_castle_close || can_castle_far){
-							cout<<"\nYou can castle \n";
-							string input="";
-							if (input.compare("1")!=0 ||input.compare("1")!=0 ){
-								if (can_castle_far){
-									cout<<"Would you like to castle far? \n 1: Yes \n (Anything Else): No";
-									cin>>input;
-								}
-								if (input.compare("1")==0 && can_castle_far){
-									if (blacksTurn==true){
-										Game1.board[0][3]=Game1.board[0][0]; 
-										Game1.board[0][2]=Game1.board[0][4];
-										Game1.board[0][0]=0;
-										Game1.board[0][4]=0;
-										en_passant=false;
-										break;
-									}
-									else {
-										Game1.board[7][3]=Game1.board[7][0]; 
-										Game1.board[7][2]=Game1.board[7][4];
-										Game1.board[7][0]=0;
-										Game1.board[7][4]=0;
-										en_passant=false;
-										break;
-									}
-								}
-								if (can_castle_close){
-									cout<<"Would you like to castle close? \n 1: Yes \n (Anything Else): No";
-									cin>>input;
-								}
-								if (input.compare("1")==0 && can_castle_close){
-									if (blacksTurn==true){
-										Game1.board[0][5]=Game1.board[0][7]; 
-										Game1.board[0][6]=Game1.board[0][4];
-										Game1.board[0][7]=0;
-										Game1.board[0][4]=0;
-										en_passant=false;
-										break;
-									}
-									else {
-										Game1.board[7][5]=Game1.board[7][7]; 
-										Game1.board[7][6]=Game1.board[7][4];
-										Game1.board[7][7]=0;
-										Game1.board[7][4]=0;
-										en_passant=false;
-										break;
-									}
-								}
-							}
-						}
-					}
-					//is the actual move command so long as you choose not to castle
+                    //Runs to see if you can castle
+                    bool can_castle_far=false;
+                    bool can_castle_close=false;
+                    if (Game1.board[y_cor][x_cor]->type.compare("rook")==0 || Game1.board[y_cor][x_cor]->type.compare("king")==0){
+                        if (kb_not){
+                            if (blacksTurn==true) {
+                                if (cb_far_not){
+                                    if (Game1.board[0][1]==0 && Game1.board[0][2]==0 && Game1.board[0][3]==0){
+                                        can_castle_far=castle_check_far(Game1,blacksTurn);
+                                    }
+                                }
+                                if (cb_close_not){
+                                    if (Game1.board[0][5]==0 && Game1.board[0][6]==0){
+                                        can_castle_close=castle_check_close(Game1,blacksTurn);
+                                    }
+                                }
+                            }
+                        }
+                        if (kw_not){
+                            if (blacksTurn==false){
+                                if (cw_far_not){
+                                    if (Game1.board[7][1]==0 && Game1.board[7][2]==0 && Game1.board[7][3]==0){
+                                        can_castle_far=castle_check_far(Game1,blacksTurn);
+                                    }
+                                }
+                                if (cw_close_not){
+                                    if (Game1.board[7][5]==0 && Game1.board[7][6]==0){
+                                        can_castle_close=castle_check_close(Game1,blacksTurn);
+                                    }
+                                }
+                            }
+                        }
+                        if (can_castle_close || can_castle_far){
+                            cout<<"\nYou can castle:\n";
+                            while (can_castle_far) {
+                                    cout<<"Would you like to castle with your far rook?\n1) Yes\n2) No\nInput: ";
+                                    string input = "";
+                                    cin>>input;
+                                    cin.clear();
+                                    cin.ignore(1024, '\n');
+                                if (input.compare("1")==0){
+                                    if (blacksTurn==true){
+                                        Game1.board[0][3]=Game1.board[0][0]; 
+                                        Game1.board[0][2]=Game1.board[0][4];
+                                        Game1.board[0][0]=0;
+                                        Game1.board[0][4]=0;
+                                        en_passant=false;
+                                        break;
+                                    }
+                                    else {
+                                        Game1.board[7][3]=Game1.board[7][0]; 
+                                        Game1.board[7][2]=Game1.board[7][4];
+                                        Game1.board[7][0]=0;
+                                        Game1.board[7][4]=0;
+                                        en_passant=false;
+                                        break;
+                                    }
+                                }
+                                else if (input.compare("2")==0){
+                                    cout<< "You have chosen not to castle.\n\nYou selected a " << Game1.board[y_cor][x_cor]->type<<"\n";
+                                    break;
+                                }
+                                else {
+                                    cout<< "Invalid input, try again.\n";
+                                    continue;
+                                }
+                            }
+                            while (can_castle_close) {
+                                cout<<"Would you like to castle with your close rook?\n1) Yes\n2) No\nInput: ";
+                                string input = "";
+                                cin>>input;
+                                cin.clear();
+                                cin.ignore(1024, '\n');
+                                if (input.compare("1")==0){
+                                    if (blacksTurn==true){
+                                        Game1.board[0][5]=Game1.board[0][7]; 
+                                        Game1.board[0][6]=Game1.board[0][4];
+                                        Game1.board[0][7]=0;
+                                        Game1.board[0][4]=0;
+                                        en_passant=false;
+                                        //break;
+                                    }
+                                    else {
+                                        cout<< "6\n";
+                                        Game1.board[7][5]=Game1.board[7][7]; 
+                                        Game1.board[7][6]=Game1.board[7][4];
+                                        Game1.board[7][7]=0;
+                                        Game1.board[7][4]=0;
+                                        en_passant=false;
+                                        cout<< "7\n";
+                                        //break;
+                                    }
+                                }
+                                else if (input.compare("2")==0){
+                                    cout<< "You have chosen not to castle.\n\nYou selected a " << Game1.board[y_cor][x_cor]->type<<"\n";
+                                    break;
+                                }
+                                else {
+                                    cout<< "Invalid input, try again.\n";
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                    //is the actual move command so long as you choose not to castle
                     hasMoved = move(Game1, x_cor, y_cor, blacksTurn, en_passant, px_cor, py_cor);
+                    if (!hasMoved) {
+                        //system(CLEAR);
+                        Game1.printBoard();
+                        cout<< "\nError: Invalid move, try again.\n\n";
+                        continue;
+                    }
                 }
                 else {
                     cout<< "Not your piece, try again!\n";
                     continue;
                 }
             }
-			else {
-				cout<<"No piece there \n";
-			}
+            else {
+                cout<<"No piece there\n";
+            }
         }
-		//Runs all this after you move
-		//Checks to see if any of the rooks or kings have moved
-		if (Game1.board[0][0]!=0){
-			if (Game1.board[0][0]->type.compare("rook")!=0 || Game1.board[0][0]->isBlack==false){
-				cb_far_not=false;
-			}
-		}
-		else{
-			cb_far_not=false;
-		}
-		if (Game1.board[0][7]!=0){
-			if (Game1.board[0][7]->type.compare("rook")!=0 || Game1.board[0][7]->isBlack==false){
-				cb_close_not=false;
-			}
-		}
-		else{
-			cb_close_not=false;
-		}
-		if (Game1.board[7][0]!=0){
-			if (Game1.board[7][0]->type.compare("rook")!=0 || Game1.board[7][0]->isBlack==true){
-				cw_far_not=false;
-			}
-		}
-		else{
-			cw_far_not=false;
-		}
-		if (Game1.board[7][7]!=0){
-			if (Game1.board[7][7]->type.compare("rook")!=0 || Game1.board[7][7]->isBlack==true){
-				cw_close_not=false;
-			}
-		}
-		else{
-			cw_close_not=false;
-		}
-		if (Game1.board[0][4]!=0){
-			if (Game1.board[0][4]->type.compare("king")!=0|| Game1.board[0][4]->isBlack==false){
-				kb_not=false;
-			}
-		}
-		else{
-			kb_not=false;
-		}
-		if (Game1.board[7][4]!=0){
-			if (Game1.board[7][4]->type.compare("king")!=0|| Game1.board[7][4]->isBlack==true){
-				kw_not=false;
-			}
-		}
-		else{
-			kw_not=false;
-		}
-		//Pawn promotion automatically makes a pawn a queen
-		for (int i=0;i<8;i++){
-			if (Game1.board[7][i]!=0){
-				if (Game1.board[7][i]->type.compare("pawn")==0){
-					Game1.board[7][i]=pieces[2][0];
-					cout<<"\nPawn Promotion!\n";
-				}
-			}
-			if (Game1.board[0][i]!=0){
-				if (Game1.board[0][i]->type.compare("pawn")==0){
-					Game1.board[0][i]=pieces[2][1];
-					cout<<"\nPawn Promotion!\n";
-				}
-			}
-		}
-		//runs to see if you pute your oppenent in check
-		bool in_check=check(Game1, !blacksTurn);
-		if (in_check){
-			cout<<"King is in check \n";
-			bool in_check_mate=checkmate(Game1, !blacksTurn, en_passant, px_cor, py_cor);
-			if (in_check_mate){
-				quit=true;
-				cout<<"Check-mate game is over! \n";
-			}
-		}
-		if (!AI){
-			Game1.printBoard();
-			blacksTurn = !blacksTurn;
-		}
-		else {
-				AI_move(Game1, in_check, en_passant, px_cor, py_cor);
-					//Checks to see if any of the rooks or kings have moved
-				if (Game1.board[0][0]!=0){
-					if (Game1.board[0][0]->type.compare("rook")!=0 || Game1.board[0][0]->isBlack==false){
-						cb_far_not=false;
-					}
-				}
-				else{
-					cb_far_not=false;
-				}
-				if (Game1.board[0][7]!=0){
-					if (Game1.board[0][7]->type.compare("rook")!=0 || Game1.board[0][7]->isBlack==false){
-						cb_close_not=false;
-					}
-				}
-				else{
-					cb_close_not=false;
-				}
-				if (Game1.board[7][0]!=0){
-					if (Game1.board[7][0]->type.compare("rook")!=0 || Game1.board[7][0]->isBlack==true){
-						cw_far_not=false;
-					}
-				}
-				else{
-					cw_far_not=false;
-				}
-				if (Game1.board[7][7]!=0){
-					if (Game1.board[7][7]->type.compare("rook")!=0 || Game1.board[7][7]->isBlack==true){
-						cw_close_not=false;
-					}
-				}
-				else{
-					cw_close_not=false;
-				}
-				if (Game1.board[0][4]!=0){
-					if (Game1.board[0][4]->type.compare("king")!=0|| Game1.board[0][4]->isBlack==false){
-						kb_not=false;
-					}
-				}
-				else{
-					kb_not=false;
-				}
-				if (Game1.board[7][4]!=0){
-					if (Game1.board[7][4]->type.compare("king")!=0|| Game1.board[7][4]->isBlack==true){
-						kw_not=false;
-					}
-				}
-				else{
-					kw_not=false;
-				}
-				//Pawn promotion automatically makes a pawn a queen
-				for (int i=0;i<8;i++){
-					if (Game1.board[7][i]!=0){
-						if (Game1.board[7][i]->type.compare("pawn")==0){
-							Game1.board[7][i]=pieces[2][0];
-							cout<<"\nPawn Promotion!\n";
-						}
-					}
-					if (Game1.board[0][i]!=0){
-						if (Game1.board[0][i]->type.compare("pawn")==0){
-							Game1.board[0][i]=pieces[2][1];
-							cout<<"\nPawn Promotion!\n";
-						}
-					}
-				}
-				//runs to see if you pute your oppenent in check
-				bool in_check=check(Game1, blacksTurn);
-				if (in_check){
-					cout<<"King is in check \n";
-					bool in_check_mate=checkmate(Game1, !blacksTurn, en_passant, px_cor, py_cor);
-					if (in_check_mate){
-						quit=true;
-						cout<<"Check-mate game is over! \n";
-					}
-				}
-				Game1.printBoard();
-		}
+        //Runs all this after you move
+        //Checks to see if any of the rooks or kings have moved
+        if (Game1.board[0][0]!=0){
+            if (Game1.board[0][0]->type.compare("rook")!=0 || Game1.board[0][0]->isBlack==false){
+                cb_far_not=false;
+            }
+        }
+        else{
+            cb_far_not=false;
+        }
+        if (Game1.board[0][7]!=0){
+            if (Game1.board[0][7]->type.compare("rook")!=0 || Game1.board[0][7]->isBlack==false){
+                cb_close_not=false;
+            }
+        }
+        else{
+            cb_close_not=false;
+        }
+        if (Game1.board[7][0]!=0){
+            if (Game1.board[7][0]->type.compare("rook")!=0 || Game1.board[7][0]->isBlack==true){
+                cw_far_not=false;
+            }
+        }
+        else{
+            cw_far_not=false;
+        }
+        if (Game1.board[7][7]!=0){
+            if (Game1.board[7][7]->type.compare("rook")!=0 || Game1.board[7][7]->isBlack==true){
+                cw_close_not=false;
+            }
+        }
+        else{
+            cw_close_not=false;
+        }
+        if (Game1.board[0][4]!=0){
+            if (Game1.board[0][4]->type.compare("king")!=0|| Game1.board[0][4]->isBlack==false){
+                kb_not=false;
+            }
+        }
+        else{
+            kb_not=false;
+        }
+        if (Game1.board[7][4]!=0){
+            if (Game1.board[7][4]->type.compare("king")!=0|| Game1.board[7][4]->isBlack==true){
+                kw_not=false;
+            }
+        }
+        else{
+            kw_not=false;
+        }
+        //Pawn promotion automatically makes a pawn a queen
+        for (int i=0;i<8;i++){
+            if (Game1.board[7][i]!=0){
+                if (Game1.board[7][i]->type.compare("pawn")==0){
+                    Game1.board[7][i]=pieces[2][0];
+                    cout<<"\nPawn Promotion!\n";
+                }
+            }
+            if (Game1.board[0][i]!=0){
+                if (Game1.board[0][i]->type.compare("pawn")==0){
+                    Game1.board[0][i]=pieces[2][1];
+                    cout<<"\nPawn Promotion!\n";
+                }
+            }
+        }
+        //runs to see if you pute your oppenent in check
+        bool in_check=check(Game1, !blacksTurn);
+        if (in_check){
+            bool in_check_mate=checkmate(Game1, !blacksTurn, en_passant, px_cor, py_cor);
+            if (in_check_mate){
+                quit = true;
+                cout<<"\n\n\n\nCheckmate! The game is over!\n";
+                break;
+            }
+            if (!blacksTurn == true) {
+                cout<< "Black's ";
+            }
+            else {
+                cout<< "White's ";
+            }
+            cout<<"king is in check \n";
+        }
+        if (!AI){
+            Game1.printBoard();
+            blacksTurn = !blacksTurn;
+        }
+        else {
+            AI_move(Game1, in_check, en_passant, px_cor, py_cor);
+            //Checks to see if any of the rooks or kings have moved
+            if (Game1.board[0][0]!=0){
+                if (Game1.board[0][0]->type.compare("rook")!=0 || Game1.board[0][0]->isBlack==false){
+                    cb_far_not=false;
+                }
+            }
+            else{
+                cb_far_not=false;
+            }
+            if (Game1.board[0][7]!=0){
+                if (Game1.board[0][7]->type.compare("rook")!=0 || Game1.board[0][7]->isBlack==false){
+                    cb_close_not=false;
+                }
+            }
+            else{
+                cb_close_not=false;
+            }
+            if (Game1.board[7][0]!=0){
+                if (Game1.board[7][0]->type.compare("rook")!=0 || Game1.board[7][0]->isBlack==true){
+                    cw_far_not=false;
+                }
+            }
+            else{
+                cw_far_not=false;
+            }
+            if (Game1.board[7][7]!=0){
+                if (Game1.board[7][7]->type.compare("rook")!=0 || Game1.board[7][7]->isBlack==true){
+                    cw_close_not=false;
+                }
+            }
+            else{
+                cw_close_not=false;
+            }
+            if (Game1.board[0][4]!=0){
+                if (Game1.board[0][4]->type.compare("king")!=0|| Game1.board[0][4]->isBlack==false){
+                    kb_not=false;
+                }
+            }
+            else{
+                kb_not=false;
+            }
+            if (Game1.board[7][4]!=0){
+                if (Game1.board[7][4]->type.compare("king")!=0|| Game1.board[7][4]->isBlack==true){
+                    kw_not=false;
+                }
+            }
+            else{
+                kw_not=false;
+            }
+            //Pawn promotion automatically makes a pawn a queen
+            for (int i=0;i<8;i++){
+                if (Game1.board[7][i]!=0){
+                    if (Game1.board[7][i]->type.compare("pawn")==0){
+                        Game1.board[7][i]=pieces[2][0];
+                        cout<<"\nPawn Promotion!\n";
+                    }
+                }
+                if (Game1.board[0][i]!=0){
+                    if (Game1.board[0][i]->type.compare("pawn")==0){
+                        Game1.board[0][i]=pieces[2][1];
+                        cout<<"\nPawn Promotion!\n";
+                    }
+                }
+            }
+            //runs to see if you pute your oppenent in check
+            bool in_check=check(Game1, blacksTurn);
+            if (in_check){
+                cout<<"King is in check \n";
+                bool in_check_mate=checkmate(Game1, !blacksTurn, en_passant, px_cor, py_cor);
+                if (in_check_mate){
+                    quit=true;
+                    cout<<"\n\n\n\nCheckmate! The game is over! \n";
+                    break;
+                }
+            }
+        }
     }
+    if (!blacksTurn == true) {
+        cout<< "Black ";
+    }
+    else {
+        cout<< "White ";
+    }
+    cout<< "wins!";
+    cout<< "\nFinal board state:";
+    Game1.printBoard();
+    cout<< "Had fun? Then play again!\n\t1) Play Again\n\t2) Exit\n";
     Game1.deleteBoard();
     return 0;
 }
