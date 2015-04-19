@@ -415,6 +415,391 @@ bool castle_check_close(Board game, bool player_isBlack){
 	return can_castle;
 }
 
+//This is the sorting algorithm which determines the tier level of each move for each piece
+void sort_moves(int x_pos, int y_pos, Board game, stack<int> &xs, stack<int> &ys, stack<string> &move_get_taken, stack<string> &move, 
+stack<string> &move_can_take_get_taken, stack<string> &move_can_take, stack<string> &check_get_taken, stack<string> &put_them_in_check){
+	while (!xs.empty() && !ys.empty()){
+		bool can_take=false;
+		bool gets_taken=false;
+		bool can_take_king=false;
+		int x=xs.top();
+		int y=ys.top();
+		//runs to see if it moves to a place where it can get taken
+		for(int y_pos2=0; y_pos2<8; y_pos2++){
+			for(int x_pos2 = 0; x_pos2 < 8; x_pos2++){
+				if (game.board[y_pos2][x_pos2]!=0){
+					if (game.board[y_pos2][x_pos2]->isBlack != true){
+						stack<int> can_xs;
+						stack<int> can_ys;
+						game.board[y_pos2][x_pos2]->generate_moves(game, x_pos2, y_pos2, can_xs, can_ys);
+						while (!can_xs.empty() && !can_ys.empty()){
+							if ((can_xs.top()==x && can_ys.top()==y)){
+								gets_taken=true;
+								break;
+							}
+							can_xs.pop();
+							can_ys.pop();
+						}
+					}
+				}
+				if (gets_taken==true){
+					break;
+				}
+			}
+			if (gets_taken==true){
+				break;
+			}
+		}
+		//runs to see if it can take anything
+		if (game.board[y][x]!=0){
+			can_take=true;
+		}
+		//See if it puts the king in check by moving it to that position
+		Piece* temp1=game.board[y][x];
+		Piece* temp2=game.board[y_pos][x_pos];
+		game.board[y][x]=game.board[y_pos][x_pos];
+		game.board[y_pos][x_pos]=0;
+		can_take_king=check(game, false);
+		game.board[y][x]=temp1;
+		game.board[y_pos][x_pos]=temp2;
+		//Builds the string for position in (x_pos,y_pos,x,y) format
+		stringstream format;
+		format<<x_pos<<y_pos<<x<<y;
+		string formatted=format.str();
+		if (!can_take && !gets_taken && !can_take_king){
+			move.push(formatted);
+		}
+		if (!can_take && gets_taken && !can_take_king){
+			move_get_taken.push(formatted);
+		}
+		if (can_take && gets_taken && !can_take_king){
+			move_can_take_get_taken.push(formatted);
+		}
+		if (can_take && !gets_taken && !can_take_king){
+			move_can_take.push(formatted);
+		}
+		if (gets_taken && can_take_king){
+			check_get_taken.push(formatted);
+		}
+		if (!gets_taken && can_take_king){
+			put_them_in_check.push(formatted);
+		}
+		xs.pop();
+		ys.pop();
+	}
+}
+
+//This is the try moves function which the AI uses to get out of check
+bool try_move(Board game, int x_pos, int y_pos, bool player_isBlack, bool &en_passant, int &px_cor, int &py_cor){
+    bool blocked=false;
+	//if its a pawn pull a enpassant if possible
+	if (game.board[y_pos][x_pos]->type.compare("pawn")==0){
+		if (en_passant){
+			if ((x_pos==px_cor-1)||(x_pos==px_cor+1)){
+				if (y_pos==py_cor){
+					//only runs black because AI is only black
+					if (player_isBlack){
+						Piece* temp1=game.board[y_pos][x_pos];
+						Piece* temp2=game.board[py_cor][px_cor];
+						game.board[py_cor+1][px_cor]=game.board[y_pos][x_pos];
+						game.board[py_cor][px_cor]=0;
+						game.board[y_pos][x_pos]=0;
+						bool in_check = check(game, player_isBlack);
+						if (!in_check){
+							blocked=true;
+							en_passant=false;
+						}
+						else {
+							game.board[py_cor+1][px_cor]=0;
+							game.board[y_pos][x_pos]=temp1;
+							game.board[py_cor][px_cor]=temp2;
+						}
+					}
+				}
+			}
+		}
+	}
+    stack<int> can_xs;
+    stack<int> can_ys;
+    game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, can_xs, can_ys);
+    while (!can_xs.empty() && !can_ys.empty()){
+        int x_move=can_xs.top();
+        int y_move=can_ys.top();
+        Piece* temp1=game.board[y_pos][x_pos];
+        Piece* temp2=game.board[y_move][x_move];
+        game.board[y_move][x_move]=game.board[y_pos][x_pos];
+        game.board[y_pos][x_pos]=0;
+        bool in_check = check(game, player_isBlack);
+        if (in_check==false){
+            blocked=true;
+			if (game.board[y_move][x_move]->type.compare("pawn")==0){
+				if (y_pos+2==y_move || y_pos-2==y_move){
+					en_passant=true;
+					px_cor=x_move;
+					py_cor=y_move;
+				}
+				else{
+					en_passant=false;
+				}
+			}
+			else{
+				en_passant=false;
+			}
+            break;
+        }
+		else {
+			game.board[y_move][x_move]=temp2;
+			game.board[y_pos][x_pos]=temp1;
+		}
+        can_xs.pop();
+        can_ys.pop();
+    }
+    return blocked;
+}
+
+//The AI itself
+//Basic chess AI move
+//AI plays as the black pieces
+void AI_move(Board game, bool in_check, bool &en_passant, int &px_cor, int &py_cor){
+	stack<int> xs;
+	stack<int> ys;
+	stack<string> move_get_taken;
+	stack<string> move;
+	stack<string> move_can_take_get_taken;
+	stack<string> move_can_take;
+	stack<string> check_get_taken;
+	stack<string> put_them_in_check;	
+	if (in_check==false){
+	//sorts and generates all moves for all pieces
+	bool has_moved=false;
+	for(int y_pos=0; y_pos<8; y_pos++){
+		for(int x_pos = 0; x_pos < 8; x_pos++){
+			if (game.board[y_pos][x_pos]!=0){
+				if (game.board[y_pos][x_pos]->isBlack == true){
+					game.board[y_pos][x_pos]->generate_moves(game, x_pos, y_pos, xs, ys);
+					sort_moves(x_pos, y_pos, game ,xs , ys, move_get_taken, move, move_can_take_get_taken, move_can_take, check_get_taken, put_them_in_check);
+				}
+			}
+		}
+	}
+	//picks the first move in the most optimal one as long as it doesn't put you in check and keeps going down
+	while(!put_them_in_check.empty() && !has_moved){
+		string info=put_them_in_check.top();
+		int x_pos=info.at(0)-'0';
+		int y_pos=info.at(1)-'0';
+		int x=info.at(2)-'0';
+		int y=info.at(3)-'0';
+		Piece* temp1=game.board[y][x];
+		Piece* temp2=game.board[y_pos][x_pos];
+		game.board[y][x]=game.board[y_pos][x_pos];
+		game.board[y_pos][x_pos]=0;
+		if (check(game, true)==true){
+			game.board[y][x]=temp1;
+			game.board[y_pos][x_pos]=temp2;
+		}
+		else {
+			has_moved=true;
+			if (game.board[y][x]->type.compare("pawn")==0){
+				if (y_pos+2==y || y_pos-2==y){
+					en_passant=true;
+					px_cor=x;
+					py_cor=y;
+				}
+				else{
+					en_passant=false;
+				}
+			}
+			else{
+				en_passant=false;
+			}
+		}
+		put_them_in_check.pop();
+	}
+	while(!check_get_taken.empty() && !has_moved){
+		string info=check_get_taken.top();
+		int x_pos=info.at(0)-'0';
+		int y_pos=info.at(1)-'0';
+		int x=info.at(2)-'0';
+		int y=info.at(3)-'0';
+		Piece* temp1=game.board[y][x];
+		Piece* temp2=game.board[y_pos][x_pos];
+		game.board[y][x]=game.board[y_pos][x_pos];
+		game.board[y_pos][x_pos]=0;
+		if (check(game, true)==true){
+			game.board[y][x]=temp1;
+			game.board[y_pos][x_pos]=temp2;
+		}
+		else {
+			has_moved=true;
+			if (game.board[y][x]->type.compare("pawn")==0){
+				if (y_pos+2==y || y_pos-2==y){
+					en_passant=true;
+					px_cor=x;
+					py_cor=y;
+				}
+				else{
+					en_passant=false;
+				}
+			}
+			else{
+				en_passant=false;
+			}
+		}
+		check_get_taken.pop();
+	}
+	while(!move_can_take.empty() && !has_moved){
+		string info=move_can_take.top();
+		int x_pos=info.at(0)-'0';
+		int y_pos=info.at(1)-'0';
+		int x=info.at(2)-'0';
+		int y=info.at(3)-'0';
+		Piece* temp1=game.board[y][x];
+		Piece* temp2=game.board[y_pos][x_pos];
+		game.board[y][x]=game.board[y_pos][x_pos];
+		game.board[y_pos][x_pos]=0;
+		if (check(game, true)==true){
+			game.board[y][x]=temp1;
+			game.board[y_pos][x_pos]=temp2;
+		}
+		else {
+			has_moved=true;
+			if (game.board[y][x]->type.compare("pawn")==0){
+				if (y_pos+2==y || y_pos-2==y){
+					en_passant=true;
+					px_cor=x;
+					py_cor=y;
+				}
+				else{
+					en_passant=false;
+				}
+			}
+			else{
+				en_passant=false;
+			}
+		}
+		move_can_take.pop();
+	}
+	while(!move_can_take_get_taken.empty() && !has_moved){
+		string info=move_can_take_get_taken.top();
+		int x_pos=info.at(0)-'0';
+		int y_pos=info.at(1)-'0';
+		int x=info.at(2)-'0';
+		int y=info.at(3)-'0';
+		Piece* temp1=game.board[y][x];
+		Piece* temp2=game.board[y_pos][x_pos];
+		game.board[y][x]=game.board[y_pos][x_pos];
+		game.board[y_pos][x_pos]=0;
+		if (check(game, true)==true){
+			game.board[y][x]=temp1;
+			game.board[y_pos][x_pos]=temp2;
+		}
+		else {
+			has_moved=true;
+			if (game.board[y][x]->type.compare("pawn")==0){
+				if (y_pos+2==y || y_pos-2==y){
+					en_passant=true;
+					px_cor=x;
+					py_cor=y;
+				}
+				else{
+					en_passant=false;
+				}
+			}
+			else{
+				en_passant=false;
+			}
+		}
+		move_can_take_get_taken.pop();
+	}
+	while(!move.empty() && !has_moved){
+		string info=move.top();
+		int x_pos=info.at(0)-'0';
+		int y_pos=info.at(1)-'0';
+		int x=info.at(2)-'0';
+		int y=info.at(3)-'0';
+		Piece* temp1=game.board[y][x];
+		Piece* temp2=game.board[y_pos][x_pos];
+		game.board[y][x]=game.board[y_pos][x_pos];
+		game.board[y_pos][x_pos]=0;
+		if (check(game, true)==true){
+			game.board[y][x]=temp1;
+			game.board[y_pos][x_pos]=temp2;
+		}
+		else {
+			has_moved=true;
+			if (game.board[y][x]->type.compare("pawn")==0){
+				if (y_pos+2==y || y_pos-2==y){
+					en_passant=true;
+					px_cor=x;
+					py_cor=y;
+				}
+				else{
+					en_passant=false;
+				}
+			}
+			else{
+				en_passant=false;
+			}
+		}
+		move.pop();
+	}
+	while(!move_get_taken.empty() && !has_moved){
+		string info=move_get_taken.top();
+		int x_pos=info.at(0)-'0';
+		int y_pos=info.at(1)-'0';
+		int x=info.at(2)-'0';
+		int y=info.at(3)-'0';
+		Piece* temp1=game.board[y][x];
+		Piece* temp2=game.board[y_pos][x_pos];
+		game.board[y][x]=game.board[y_pos][x_pos];
+		game.board[y_pos][x_pos]=0;
+		if (check(game, true)==true){
+			game.board[y][x]=temp1;
+			game.board[y_pos][x_pos]=temp2;
+		}
+		else {
+			has_moved=true;
+			if (game.board[y][x]->type.compare("pawn")==0){
+				if (y_pos+2==y || y_pos-2==y){
+					en_passant=true;
+					px_cor=x;
+					py_cor=y;
+				}
+				else{
+					en_passant=false;
+				}
+			}
+			else{
+				en_passant=false;
+			}
+		}
+		move_get_taken.pop();
+	}
+}
+//makes the first move to get you out of check through a restyled version of checkmate
+if (in_check){
+	bool has_moved=false;
+    for(int y_pos=0; y_pos<8; y_pos++){
+        for(int x_pos = 0; x_pos < 8; x_pos++){
+            if (game.board[y_pos][x_pos]!=0){
+                if (game.board[y_pos][x_pos]->isBlack==true){
+                    bool blocked=try_move(game, x_pos, y_pos, true, en_passant, px_cor, py_cor);
+                    if (blocked){
+                        has_moved=true;
+                    }
+                }
+            }
+            if (has_moved==true){
+                break;
+            }
+        }
+        if (has_moved==true){
+            break;
+        }
+    }
+}
+}
+
 
 //The actual game
 int main() {
