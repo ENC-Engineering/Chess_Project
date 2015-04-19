@@ -1266,11 +1266,11 @@ int main() {
                     }
                 }
             }
-            //runs to see if you pute your oppenent in check
-            bool in_check=check(Game1, blacksTurn);
+            //runs to see if you put your oppenent in check
+            bool in_check=check(Game1, false);
             if (in_check){
                 cout<<"King is in check \n";
-                bool in_check_mate=checkmate(Game1, !blacksTurn, en_passant, px_cor, py_cor);
+                bool in_check_mate=checkmate(Game1, false, en_passant, px_cor, py_cor);
                 if (in_check_mate){
                     quit=true;
                     cout<<"\n\n\n\nCheckmate! The game is over! \n";
