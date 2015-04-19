@@ -1,3 +1,6 @@
+#ifndef COP3503_Project_chess_pieces_h_included__
+#define COP3503_Project_chess_pieces_h_included__
+
 #include <stack>
 class Board;
 
