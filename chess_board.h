@@ -18,4 +18,4 @@ private:
     void setup(Piece*** &board, Piece* pieces[6][2]);
 };
 
-#endif 
+#endif
