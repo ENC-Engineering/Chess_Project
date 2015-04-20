@@ -69,18 +69,45 @@ bool move(Board game, int x_cor, int y_cor, bool blacksTurn, bool &en_passant, i
     stack<int> x_cans2;
     stack<int> y_cans2;
     bool empty_stacks=false;
-    //generates the en_passant if possible
+    bool no_check_enpassant=false;
+    int en_p_x=0;
+    int en_p_y=0;
+    //generates the en_passant if possible and doesn't put you in check
     if (game.board[y_cor][x_cor]->type.compare("pawn")==0) {
         if (en_passant){
             if ((x_cor==px_cor-1)||(x_cor==px_cor+1)){
                 if (y_cor==py_cor){
                     if (blacksTurn){
-                        x_cans1.push(px_cor);
-                        y_cans1.push(py_cor+1);
+			Piece* temp1=game.board[y_cor][x_cor];
+                        Piece* temp2=game.board[py_cor][px_cor];
+                        game.board[py_cor+1][px_cor]=game.board[y_cor][x_cor];
+                        game.board[py_cor][px_cor]=0;
+                        game.board[y_cor][x_cor]=0;
+                        bool put_yourself_incheck = check(game, blacksTurn);
+			game.board[py_cor][px_cor]=temp2;
+                        game.board[y_cor][x_cor]=temp1;
+                        game.board[py_cor+1][px_cor]=0;
+                        if (put_yourself_incheck==false){
+				no_check_enpassant=true;
+				en_p_x=px_cor;
+                       		en_p_y=py_cor+1;
+                        }
                     }
                     else {
-                        x_cans1.push(px_cor);
-                        y_cans1.push(py_cor-1);
+			Piece* temp1=game.board[y_cor][x_cor];
+                        Piece* temp2=game.board[py_cor][px_cor];
+                        game.board[py_cor-1][px_cor]=game.board[y_cor][x_cor];
+                        game.board[py_cor][px_cor]=0;
+                        game.board[y_cor][x_cor]=0;
+                        bool put_yourself_incheck = check(game, blacksTurn);
+			game.board[py_cor][px_cor]=temp2;
+                        game.board[y_cor][x_cor]=temp1;
+                        game.board[py_cor-1][px_cor]=0;
+                        if (put_yourself_incheck==false){
+				no_check_enpassant=true;
+				en_p_x=px_cor;
+                       		en_p_y=py_cor-1;
+                        }
                     }
                 }
             }
@@ -88,27 +115,49 @@ bool move(Board game, int x_cor, int y_cor, bool blacksTurn, bool &en_passant, i
     }
     //generates all moves for the piece
     game.board[y_cor][x_cor]->generate_moves(game, x_cor, y_cor, x_cans1, y_cans1);
-    if (x_cans1.empty() || y_cans1.empty()) {
+    //Will push in moves that do not put you in check
+    if ((x_cans1.empty() || y_cans1.empty()) && no_check_enpassant==false) {
         cout<< "\n No Available Moves.\n";
 	empty_stacks=true;
     }
     else {
         bool first = true;
-        cout<< "Moves: ";
         while (!x_cans1.empty() && !y_cans1.empty()) {
-            if (!first) {
-                cout<< ", ";
-            }
-            cout << (char)(x_cans1.top()+97) << 8 - y_cans1.top();
-            x_cans2.push(x_cans1.top());
-            x_cans1.pop();
-            y_cans2.push(y_cans1.top());
-            y_cans1.pop();
-            first = false;
+	    int x_move=x_cans1.top();
+	    int y_move=y_cans1.top();
+	    Piece* temp1=game.board[y_cor][x_cor];
+            Piece* temp2=game.board[y_move][x_move];
+            game.board[y_move][x_move]=game.board[y_cor][x_cor];
+            game.board[y_cor][x_cor]=0;
+            bool put_yourself_incheck = check(game, blacksTurn);
+            game.board[y_move][x_move]=temp2;
+            game.board[y_cor][x_cor]=temp1;
+	    if (put_yourself_incheck==false){
+            	if (!first) {
+                	cout<< ", ";
+            	}
+	    	else{
+        		cout<< "Moves: ";
+	    	}
+           	cout << (char)(x_cans1.top()+97) << 8 - y_cans1.top();
+            	x_cans2.push(x_cans1.top());
+            	y_cans2.push(y_cans1.top());
+            	first = false;
+	    }
+	    x_cans1.pop();
+	    y_cans1.pop();
         }
+	if (no_check_enpassant){
+		x_cans2.push(en_p_x);
+		y_cans2.push(en_p_y);
+	}
+	if (x_cans2.empty() || y_cans2.empty()){
+	    cout<< "\n No Available Moves That Do Not Put You In Check.\n";
+	    empty_stacks=true;
+	}
     }
     cout<< "\n";
-    //inputs where you would like to move
+    //lets you input where you would like to move
     char x_move_char;
     int x_move;
     int y_move;
@@ -122,7 +171,7 @@ bool move(Board game, int x_cor, int y_cor, bool blacksTurn, bool &en_passant, i
     }
     x_move = x_move - 1;
     y_move = 8 - y_move;
-    //if you want to perform an en_passant which is in the stack it will run this
+    //the en_passant move lies strategically at the top of the stack so it can check if you wanted to perform one right away
     if (!x_cans2.empty() && !y_cans2.empty()){
         if (en_passant){
             if (game.board[y_cor][x_cor]->type.compare("pawn")==0){
@@ -1225,7 +1274,7 @@ int main() {
             blacksTurn = !blacksTurn;
         }
 	//This is the loop the AI runs (it plays as Black)
-        else {
+        else if (AI && !quit){
             AI_move(Game1, in_check, en_passant, px_cor, py_cor);
             //Checks to see if any of the rooks or kings have moved
             if (Game1.board[0][0]!=0){
