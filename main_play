@@ -541,6 +541,7 @@ bool try_move(Board game, int x_pos, int y_pos, bool player_isBlack, bool &en_pa
                         game.board[y_pos][x_pos]=0;
                         bool in_check = check(game, player_isBlack);
                         if (!in_check){
+                            cout<<"\nThe AI moved a "<<game.board[py_cor+1][px_cor]->type<<" to "<<char(97+px_cor)<<8-py_cor+1<<"\n";
                             blocked=true;
                             en_passant=false;
                         }
@@ -567,6 +568,7 @@ bool try_move(Board game, int x_pos, int y_pos, bool player_isBlack, bool &en_pa
         bool in_check = check(game, player_isBlack);
         if (in_check==false){
             blocked=true;
+            cout<<"\nThe AI moved a "<<game.board[y_move][x_move]->type<<" to "<<char(97+x_move)<<8-y_move<<"\n";
             if (game.board[y_move][x_move]->type.compare("pawn")==0){
                 if (y_pos+2==y_move || y_pos-2==y_move){
                     en_passant=true;
@@ -636,6 +638,7 @@ void AI_move(Board game, bool in_check, bool &en_passant, int &px_cor, int &py_c
             else{
                 has_moved=true;
 		if (game.board[y][x]!=0){
+			cout<<"\nThe AI moved a "<<game.board[y][x]->type<<" to "<<char(97+x)<<8-y<<"\n";
                 	if (game.board[y][x]->type.compare("pawn")==0){
                     		if (y_pos+2==y || y_pos-2==y){
                        		en_passant=true;
@@ -671,6 +674,7 @@ void AI_move(Board game, bool in_check, bool &en_passant, int &px_cor, int &py_c
             else{
                 has_moved=true;
 		if (game.board[y][x]!=0){
+			cout<<"\nThe AI moved a "<<game.board[y][x]->type<<" to "<<char(97+x)<<8-y<<"\n";
                 	if (game.board[y][x]->type.compare("pawn")==0){
                     		if (y_pos+2==y || y_pos-2==y){
                        		en_passant=true;
@@ -706,6 +710,7 @@ void AI_move(Board game, bool in_check, bool &en_passant, int &px_cor, int &py_c
             else{
                 has_moved=true;
 		if (game.board[y][x]!=0){
+			cout<<"\nThe AI moved a "<<game.board[y][x]->type<<" to "<<char(97+x)<<8-y<<"\n";
                 	if (game.board[y][x]->type.compare("pawn")==0){
                     		if (y_pos+2==y || y_pos-2==y){
                        		en_passant=true;
@@ -741,6 +746,7 @@ void AI_move(Board game, bool in_check, bool &en_passant, int &px_cor, int &py_c
             else{
                 has_moved=true;
 		if (game.board[y][x]!=0){
+			cout<<"\nThe AI moved a "<<game.board[y][x]->type<<" to "<<char(97+x)<<8-y<<"\n";
                 	if (game.board[y][x]->type.compare("pawn")==0){
                     		if (y_pos+2==y || y_pos-2==y){
                        		en_passant=true;
@@ -776,6 +782,7 @@ void AI_move(Board game, bool in_check, bool &en_passant, int &px_cor, int &py_c
             else{
                 has_moved=true;
 		if (game.board[y][x]!=0){
+			cout<<"\nThe AI moved a "<<game.board[y][x]->type<<" to "<<char(97+x)<<8-y<<"\n";
                 	if (game.board[y][x]->type.compare("pawn")==0){
                     		if (y_pos+2==y || y_pos-2==y){
                        		en_passant=true;
@@ -811,6 +818,7 @@ void AI_move(Board game, bool in_check, bool &en_passant, int &px_cor, int &py_c
             else{
                 has_moved=true;
 		if (game.board[y][x]!=0){
+			cout<<"\nThe AI moved a "<<game.board[y][x]->type<<" to "<<char(97+x)<<8-y<<"\n";
                 	if (game.board[y][x]->type.compare("pawn")==0){
                     		if (y_pos+2==y || y_pos-2==y){
                        		en_passant=true;
@@ -846,6 +854,7 @@ void AI_move(Board game, bool in_check, bool &en_passant, int &px_cor, int &py_c
             else{
                 has_moved=true;
 		if (game.board[y][x]!=0){
+			cout<<"\nThe AI moved a "<<game.board[y][x]->type<<" to "<<char(97+x)<<8-y<<"\n";
                 	if (game.board[y][x]->type.compare("pawn")==0){
                     		if (y_pos+2==y || y_pos-2==y){
                        		en_passant=true;
