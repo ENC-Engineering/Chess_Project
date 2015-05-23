@@ -391,7 +391,7 @@ bool castle_check_far(Board game, bool player_isBlack){
         }
     }
     else{
-        if (player_isBlack==true){
+        if (player_isBlack==false){
             bool in_check_there=false;
             in_check_there=check(game, player_isBlack);
             if (in_check_there==true){
@@ -453,7 +453,7 @@ bool castle_check_close(Board game, bool player_isBlack){
         }
     }
     else{
-        if (player_isBlack==true){
+        if (player_isBlack==false){
             bool in_check_there=false;
             in_check_there=check(game, player_isBlack);
             if (in_check_there==true){
